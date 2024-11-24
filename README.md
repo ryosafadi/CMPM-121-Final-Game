@@ -14,11 +14,11 @@ Design Co-Leads: Arno Wu, Patrick James Alcantara
 
 1. We would like to build the game using the Phaser Library. We think that Phaser is a good choice for the 2D grid-based game we plan to make, and we all have experience developing with Phaser. We would also get the chance to practice and apply what we learned from both CMPM120 and CMPM121.
 
-2. We will either use Typescript or JavaScript for the programming language, and JSON as the data language since we are planning to use Phaser. These programming languages and data language are well-supported by Phaser, which is the main reason why we chose them.
+2. We will use JavaScript for the programming language, and JSON as the data language since we are planning to use Phaser. This programming language and data language are well-supported by Phaser, which is the main reason why we chose them.
 
 3. We will use VScode for this project, and maybe Aseprite for creating visual assets. We all have experience with VScode and some of its tools, so it seemed like the best choice for an IDE. As for Aseprite, it seems like a relatively straightforward yet valuable tool, so we want to learn more about it.
 
-4. For an alternate platform, we plan to switch from Javascript to Typescript or vice versa, depending on which of the two languages we choose to start with. 
+4. For an alternate platform, we plan to switch our programming language from Javascript to Typescript, but we will continue to use the Phaser framework.
 
 ## Outlook
 
