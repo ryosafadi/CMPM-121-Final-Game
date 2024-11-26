@@ -25,7 +25,7 @@ export default class GameScene extends Phaser.Scene {
         this.input.on('pointerdown', (pointer) => {
             const x = pointer.x;
             const y = pointer.y;
-            this.placePlant(grid, x, y);
+            this.handleGridClick(grid, x, y);
         });
 
         // Create inventory display
@@ -34,20 +34,20 @@ export default class GameScene extends Phaser.Scene {
 
     createBoxes(grid) {
         const plantTypes = ['🌱', '🌿', '🌳'];
-        const boxes = [
+        this.boxes = [
             { row: 0, col: 0, plants: [new Plant(plantTypes[0], 1)] },
             { row: 0, col: 1, plants: [new Plant(plantTypes[1], 1)] },
             { row: 0, col: 2, plants: [new Plant(plantTypes[2], 1)] }
         ];
 
-        boxes.forEach(box => {
+        this.boxes.forEach(box => {
             box.plants.forEach(plant => {
                 grid.addPlant(box.row, box.col, plant);
             });
         });
 
         // Draw boxes with different colors and add interactivity
-        this.drawBoxes(grid, boxes);
+        this.drawBoxes(grid, this.boxes);
 
         // Check growth conditions periodically
         this.time.addEvent({
@@ -69,7 +69,7 @@ export default class GameScene extends Phaser.Scene {
             const y = grid.offsetY + box.row * grid.cellSize;
             const rect = this.add.rectangle(x, y, grid.cellSize, grid.cellSize, 0xff0000).setOrigin(0);
             rect.setInteractive();
-            rect.on('pointerdown', () => this.pickUpPlant(box.plants));
+            rect.on('pointerdown', () => this.handleBoxClick(box));
             const text = this.add.text(x + grid.cellSize / 2, y + grid.cellSize / 2, '📦', {
                 fontSize: `${grid.cellSize / 2}px`,
                 align: 'center'
@@ -88,6 +88,20 @@ export default class GameScene extends Phaser.Scene {
         });
     }
 
+    handleBoxClick(box) {
+        if (this.selectedPlant) {
+            // Return plant to the box
+            box.plants.push(this.selectedPlant);
+            this.inventory = this.inventory.filter(plant => plant !== this.selectedPlant);
+            this.selectedPlant = null;
+            this.updateInventoryDisplay();
+            alert(`Returned: ${box.plants[box.plants.length - 1].type} (Level ${box.plants[box.plants.length - 1].level}) to the box`);
+        } else {
+            // Pick up plant from the box
+            this.pickUpPlant(box.plants);
+        }
+    }
+
     pickUpPlant(plants) {
         if (plants.length > 0) {
             const plant = plants.pop();
@@ -98,18 +112,68 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    placePlant(grid, x, y) {
-        if (this.selectedPlant) {
-            const col = Math.floor((x - grid.offsetX) / grid.cellSize);
-            const row = Math.floor((y - grid.offsetY) / grid.cellSize);
+    handleGridClick(grid, x, y) {
+        const col = Math.floor((x - grid.offsetX) / grid.cellSize);
+        const row = Math.floor((y - grid.offsetY) / grid.cellSize);
 
-            if (row >= 0 && row < this.ROWS && col >= 0 && col < this.COLS) {
-                grid.addPlant(row, col, this.selectedPlant);
-                this.selectedPlant = null;
-                this.drawPlants(grid);
-                this.updateInventoryDisplay();
+        if (row >= 0 && row < this.ROWS && col >= 0 && col < this.COLS) {
+            const cell = grid.getCell(row, col);
+            if (!cell.plant) {
+                // Place plant from inventory
+                if (!this.isBox(row, col)) {
+                    this.showPlantSelectionMenu(grid, row, col);
+                }
             }
         }
+    }
+
+    isBox(row, col) {
+        return this.boxes.some(box => box.row === row && box.col === col);
+    }
+
+    showPlantSelectionMenu(grid, row, col) {
+        if (this.inventory.length > 0) {
+            const plantCounts = this.inventory.reduce((counts, plant) => {
+                counts[plant.type] = (counts[plant.type] || 0) + 1;
+                return counts;
+            }, {});
+
+            // Create a menu with buttons for each plant type
+            const menu = this.add.container(grid.offsetX + col * grid.cellSize, grid.offsetY + row * grid.cellSize);
+            let y = 0;
+
+            for (const [type, count] of Object.entries(plantCounts)) {
+                const button = this.add.text(0, y, `${type} (${count})`, {
+                    fontSize: '20px',
+                    fill: '#ffffff',
+                    backgroundColor: '#000000',
+                    padding: { left: 10, right: 10, top: 5, bottom: 5 }
+                }).setInteractive();
+
+                button.on('pointerdown', () => {
+                    const selectedPlant = this.inventory.find(plant => plant.type === type);
+                    if (selectedPlant) {
+                        grid.addPlant(row, col, selectedPlant);
+                        this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
+                        this.selectedPlant = null;
+                        this.drawPlants(grid);
+                        this.updateInventoryDisplay();
+                        menu.destroy();
+                    }
+                });
+
+                menu.add(button);
+                y += 30;
+            }
+        } else {
+            alert('No plants in inventory');
+        }
+    }
+
+    returnPlantToBox(plant) {
+        this.inventory.push(plant);
+        this.updateInventoryDisplay();
+        alert(`Returned: ${plant.type} (Level ${plant.level}) to the box`);
     }
 
     createInventoryDisplay() {
