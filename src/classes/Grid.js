@@ -1,3 +1,4 @@
+// FILE: src/classes/Grid.js
 import GridCell from './GridCell.js';
 
 export default class Grid {
@@ -17,7 +18,7 @@ export default class Grid {
 
         // Calculate the offset to center the grid
         this.offsetX = (this.scene.scale.width - this.gridWidth) / 2;
-        this.offsetY = (this.scene.scale.height - this.gridHeight) / 2;
+        this.offsetY = 0; // Align grid to the top
 
         // Each cell requires 2 bytes: 1 for sunlight, 1 for water
         this.dataArray = new Uint8Array(rows * cols * 2);
@@ -30,11 +31,49 @@ export default class Grid {
                 this.gridCells.push(new GridCell(this.dataArray, index));
             }
         }
+
+        // Initialize plants array
+        this.plants = [];
     }
 
     getCell(row, col) {
         const index = row * this.cols + col;
         return this.gridCells[index];
+    }
+
+    addPlant(row, col, plant) {
+        const cell = this.getCell(row, col);
+        cell.plant = plant;
+        this.plants.push({ row, col, plant });
+    }
+
+    checkGrowthConditions() {
+        this.plants.forEach(({ row, col, plant }) => {
+            const cell = this.getCell(row, col);
+            const sunlight = cell.sunlight;
+            const water = cell.water;
+            const nearbyPlants = this.getNearbyPlants(row, col);
+            plant.grow(sunlight, water, nearbyPlants);
+        });
+    }
+
+    getNearbyPlants(row, col) {
+        const nearbyPlants = [];
+        const directions = [
+            { dr: -1, dc: 0 }, { dr: 1, dc: 0 },
+            { dr: 0, dc: -1 }, { dr: 0, dc: 1 }
+        ];
+        directions.forEach(({ dr, dc }) => {
+            const newRow = row + dr;
+            const newCol = col + dc;
+            if (newRow >= 0 && newRow < this.rows && newCol >= 0 && newCol < this.cols) {
+                const cell = this.getCell(newRow, newCol);
+                if (cell.plant) {
+                    nearbyPlants.push(cell.plant);
+                }
+            }
+        });
+        return nearbyPlants;
     }
 
     drawGrid(scene) {
