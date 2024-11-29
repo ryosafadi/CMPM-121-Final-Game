@@ -21,7 +21,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Create boxes and add plants
         this.createBoxes(grid);
-
+        
         this.player = new Player(this, grid, 1, 1, "player");
 
         // Add interactivity to the grid for placing plants
@@ -33,10 +33,6 @@ export default class GameScene extends Phaser.Scene {
 
         // Create inventory display
         this.createInventoryDisplay();
-    }
-
-    update() {
-        this.player.update();
     }
 
     createBoxes(grid) {

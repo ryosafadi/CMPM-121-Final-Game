@@ -14,7 +14,10 @@ export default class Player {
         this.sprite = this.scene.add.sprite(startX, startY, spriteKey);
         this.sprite.setScale(this.grid.cellSize / this.sprite.width * 0.8);
 
-        this.cursors = scene.input.keyboard.createCursorKeys();
+        this.isMoving = false;
+        this.keyPressed = null;
+
+        this.addKeyListeners();
     }
 
     moveTo(row, col) {
@@ -30,16 +33,35 @@ export default class Player {
         }
     }
 
-    update() {
-        // Handle input and move the player
-        if (Phaser.Input.Keyboard.JustDown(this.cursors.left)) {
-            this.moveTo(this.row, this.col - 1);
-        } else if (Phaser.Input.Keyboard.JustDown(this.cursors.right)) {
-            this.moveTo(this.row, this.col + 1);
-        } else if (Phaser.Input.Keyboard.JustDown(this.cursors.up)) {
-            this.moveTo(this.row - 1, this.col);
-        } else if (Phaser.Input.Keyboard.JustDown(this.cursors.down)) {
-            this.moveTo(this.row + 1, this.col);
-        }
+    addKeyListeners() {
+        this.scene.input.keyboard.on('keydown', (event) => {
+            if (!this.isMoving) {
+                this.isMoving = true;
+                this.keyPressed = event.code;
+
+                switch (event.code) {
+                    case 'ArrowLeft':
+                        this.moveTo(this.row, this.col - 1);
+                        break;
+                    case 'ArrowRight':
+                        this.moveTo(this.row, this.col + 1);
+                        break;
+                    case 'ArrowUp':
+                        this.moveTo(this.row - 1, this.col);
+                        break;
+                    case 'ArrowDown':
+                        this.moveTo(this.row + 1, this.col);
+                        break;
+                }
+            }
+        });
+
+        this.scene.input.keyboard.on('keyup', (event) => {
+            if (event.code == this.keyPressed) 
+            {
+                this.isMoving = false;
+                this.keyPressed = null;
+            }
+        });
     }
 }
