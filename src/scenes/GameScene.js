@@ -1,6 +1,7 @@
 // FILE: src/scenes/GameScene.js
 import Grid from '../classes/Grid.js';
 import Plant from '../classes/Plant.js';
+import Player from '../classes/Player.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -21,6 +22,8 @@ export default class GameScene extends Phaser.Scene {
         // Create boxes and add plants
         this.createBoxes(grid);
 
+        this.player = new Player(this, grid, 1, 1, "player");
+
         // Add interactivity to the grid for placing plants
         this.input.on('pointerdown', (pointer) => {
             const x = pointer.x;
@@ -30,6 +33,10 @@ export default class GameScene extends Phaser.Scene {
 
         // Create inventory display
         this.createInventoryDisplay();
+    }
+
+    update() {
+        this.player.update();
     }
 
     createBoxes(grid) {
