@@ -1,4 +1,3 @@
-// FILE: src/classes/Grid.js
 import GridCell from './GridCell.js';
 
 export default class Grid {

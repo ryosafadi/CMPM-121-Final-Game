@@ -1,4 +1,5 @@
-// FILE: src/scenes/GameScene.js
+import Phaser from 'phaser';
+
 import Grid from '../classes/Grid.js';
 import Plant from '../classes/Plant.js';
 import Player from '../classes/Player.js';
