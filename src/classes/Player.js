@@ -1,5 +1,9 @@
-export default class Player {
+import Phaser from 'phaser';
+
+export default class Player extends Phaser.Events.EventEmitter {
     constructor(scene, grid, startRow, startCol, spriteKey) {
+        super();
+
         this.scene = scene;
         this.grid = grid;
 
@@ -30,6 +34,8 @@ export default class Player {
             const x = this.grid.offsetX + this.col * this.grid.cellSize + this.grid.cellSize / 2;
             const y = this.grid.offsetY + this.row * this.grid.cellSize + this.grid.cellSize / 2;
             this.sprite.setPosition(x, y);
+
+            this.emit('player-moved');
         }
     }
 

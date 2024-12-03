@@ -1,7 +1,9 @@
 import GridCell from './GridCell.js';
 
-export default class Grid {
+export default class Grid extends Phaser.Events.EventEmitter {
     constructor(scene, rows, cols) {
+        super();
+
         this.scene = scene;
         this.rows = rows;
         this.cols = cols;
