@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 
-export default class Player extends Phaser.Events.EventEmitter {
+export default class Player extends Phaser.Events.EventEmitter{
     constructor(scene, grid, startRow, startCol, spriteKey) {
         super();
 

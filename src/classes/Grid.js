@@ -1,3 +1,4 @@
+import Phaser from 'phaser';
 import GridCell from './GridCell.js';
 
 export default class Grid extends Phaser.Events.EventEmitter {
