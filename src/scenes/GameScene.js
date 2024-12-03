@@ -21,10 +21,18 @@ export default class GameScene extends Phaser.Scene {
         const grid = new Grid(this, this.ROWS, this.COLS);
         grid.drawGrid(this);
 
+        grid.on('turn-changed', () => {
+            console.log('Turn changed');
+        });
+
         // Create boxes and add plants
         this.createBoxes(grid);
         
         this.player = new Player(this, grid, 1, 1, "player");
+
+        this.player.on('player-moved', () => {
+            grid.emit('turn-changed');
+        });
 
         // Add interactivity to the grid for placing plants
         this.input.on('pointerdown', (pointer) => {
