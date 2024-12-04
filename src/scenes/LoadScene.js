@@ -6,10 +6,10 @@ export default class LoadScene extends Phaser.Scene {
     }
 
     preload() {
-        this.load.image("player", "../assets/astronaut.png");
+        this.load.image("player", "../../assets/sprites/astronaut.png");
     }
 
     create() {
-        this.scene.start("GameScene");
+        this.scene.start("MenuScene");
     }
 }

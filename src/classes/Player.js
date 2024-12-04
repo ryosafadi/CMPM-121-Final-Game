@@ -1,73 +1,70 @@
-import Phaser from 'phaser';
+import Phaser from 'phaser'
 
-export default class Player extends Phaser.Events.EventEmitter{
-    constructor(scene, grid, startRow, startCol, spriteKey) {
-        super();
+export default class Player extends Phaser.Events.EventEmitter {
+  constructor(scene, grid, startRow, startCol, spriteKey) {
+    super()
 
-        this.scene = scene;
-        this.grid = grid;
+    this.scene = scene
+    this.grid = grid
 
-        // Set the player's initial position in the grid
-        this.row = startRow;
-        this.col = startCol;
+    // Set the player's initial position
+    const startX = this.grid.offsetX + startCol * this.grid.cellSize + this.grid.cellSize / 2
+    const startY = this.grid.offsetY + startRow * this.grid.cellSize + this.grid.cellSize / 2
 
-        // Create the player's visual representation
-        const startX = this.grid.offsetX + this.col * this.grid.cellSize + this.grid.cellSize / 2;
-        const startY = this.grid.offsetY + this.row * this.grid.cellSize + this.grid.cellSize / 2;
+    // Add physics sprite for player
+    this.sprite = this.scene.physics.add.sprite(startX, startY, spriteKey)
+    this.sprite.setScale(this.grid.cellSize / this.sprite.width * 0.8)
 
-        this.sprite = this.scene.add.sprite(startX, startY, spriteKey);
-        this.sprite.setScale(this.grid.cellSize / this.sprite.width * 0.8);
+    // Movement speed
+    this.speed = 150
 
-        this.isMoving = false;
-        this.keyPressed = null;
+    // Set up input keys
+    this.cursors = this.scene.input.keyboard.createCursorKeys()
+    this.keys = this.scene.input.keyboard.addKeys({
+      W: Phaser.Input.Keyboard.KeyCodes.W,
+      A: Phaser.Input.Keyboard.KeyCodes.A,
+      S: Phaser.Input.Keyboard.KeyCodes.S,
+      D: Phaser.Input.Keyboard.KeyCodes.D,
+      SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE
+    })
 
-        this.addKeyListeners();
+    // Grid boundaries
+    this.gridMinX = this.grid.offsetX
+    this.gridMaxX = this.grid.offsetX + this.grid.gridWidth
+    this.gridMinY = this.grid.offsetY
+    this.gridMaxY = this.grid.offsetY + this.grid.gridHeight
+  }
+
+  update() {
+    this.sprite.setVelocity(0)
+
+    let moved = false
+
+    // Movement logic
+    if ((this.cursors.left.isDown || this.keys.A.isDown) && this.sprite.x > this.gridMinX + this.grid.cellSize / 2) {
+      this.sprite.setVelocityX(-this.speed)
+      moved = true
+    } else if ((this.cursors.right.isDown || this.keys.D.isDown) && this.sprite.x < this.gridMaxX - this.grid.cellSize / 2) {
+      this.sprite.setVelocityX(this.speed)
+      moved = true
     }
 
-    moveTo(row, col) {
-        // Ensure the new position is within bounds
-        if (row >= 0 && row < this.grid.rows && col >= 0 && col < this.grid.cols) {
-            this.row = row;
-            this.col = col;
-
-            // Update the player's visual position
-            const x = this.grid.offsetX + this.col * this.grid.cellSize + this.grid.cellSize / 2;
-            const y = this.grid.offsetY + this.row * this.grid.cellSize + this.grid.cellSize / 2;
-            this.sprite.setPosition(x, y);
-
-            this.emit('player-moved');
-        }
+    if ((this.cursors.up.isDown || this.keys.W.isDown) && this.sprite.y > this.gridMinY + this.grid.cellSize / 2) {
+      this.sprite.setVelocityY(-this.speed)
+      moved = true
+    } else if ((this.cursors.down.isDown || this.keys.S.isDown) && this.sprite.y < this.gridMaxY - this.grid.cellSize / 2) {
+      this.sprite.setVelocityY(this.speed)
+      moved = true
     }
 
-    addKeyListeners() {
-        this.scene.input.keyboard.on('keydown', (event) => {
-            if (!this.isMoving) {
-                this.isMoving = true;
-                this.keyPressed = event.code;
-
-                switch (event.code) {
-                    case 'ArrowLeft':
-                        this.moveTo(this.row, this.col - 1);
-                        break;
-                    case 'ArrowRight':
-                        this.moveTo(this.row, this.col + 1);
-                        break;
-                    case 'ArrowUp':
-                        this.moveTo(this.row - 1, this.col);
-                        break;
-                    case 'ArrowDown':
-                        this.moveTo(this.row + 1, this.col);
-                        break;
-                }
-            }
-        });
-
-        this.scene.input.keyboard.on('keyup', (event) => {
-            if (event.code == this.keyPressed) 
-            {
-                this.isMoving = false;
-                this.keyPressed = null;
-            }
-        });
+    if (moved) {
+      const row = Math.floor((this.sprite.y - this.grid.offsetY) / this.grid.cellSize)
+      const col = Math.floor((this.sprite.x - this.grid.offsetX) / this.grid.cellSize)
+      this.emit('player-cell-changed', { row, col })
     }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keys.SPACE)) {
+      this.emit('player-interact')
+    }
+  }
 }

@@ -1,14 +1,14 @@
-// FILE: src/classes/Plant.js
 export default class Plant {
-    constructor(type, level) {
-        this.type = type;
-        this.level = level;
-    }
+  constructor(type, level = 1) {
+    this.type = type // Plant type 
+    this.level = level // Growth level
+  }
 
-    grow(sunlight, water, nearbyPlants) {
-        // Implement growth logic based on sunlight, water, and nearby plants
-        if (sunlight > 5 && water > 5 && nearbyPlants.length > 0) {
-            this.level++;
-        }
+  grow(sunlight, water) {
+    // Growth condition: Sunlight and water must be greater than 0
+    if (sunlight > 0 && water > 0) {
+      this.level++
+      console.log(`${this.type} grew to level ${this.level}!`)
     }
+  }
 }

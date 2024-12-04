@@ -1,217 +1,205 @@
-import Phaser from 'phaser';
+import Phaser from 'phaser'
 
-import Grid from '../classes/Grid.js';
-import Plant from '../classes/Plant.js';
-import Player from '../classes/Player.js';
+import Grid from '../classes/Grid.js'
+import Plant from '../classes/Plant.js'
+import Player from '../classes/Player.js'
 
 export default class GameScene extends Phaser.Scene {
-    constructor() {
-        super("GameScene");
-        this.inventory = [];
-        this.selectedPlant = null;
-        this.plantSelectionMenu = null; // Add this line to track the menu
+  constructor() {
+    super('GameScene')
+    this.turn = 0 // Track the current turn
+    this.inventory = [] // Holds collected seeds
+    this.seeds = [] // Track seeds on the grid
+    this.interactionRange = []
+  }
+
+  init() {
+    this.ROWS = 10
+    this.COLS = 10
+  }
+
+  create() {
+    const grid = new Grid(this, this.ROWS, this.COLS)
+    this.grid = grid
+    grid.drawGrid(this)
+
+    this.player = new Player(this, grid, 1, 1, 'player')
+
+    // Listen for player movement and update cell info
+    this.player.on('player-cell-changed', ({ row, col }) => {
+      this.displayCellInfo(row, col)
+    })
+
+    this.player.on('player-interact', () => {
+      this.handleSpaceAction()
+    })
+
+    // Randomly generate seeds
+    this.spawnSeeds()
+
+    // Display initial sun and water info for the player's starting cell
+    this.displayCellInfo(1, 1)
+
+    // Display turn info
+    this.createTurnDisplay()
+
+    // Create a button to advance the turn
+    this.createAdvanceTurnButton()
+
+    // Create inventory display
+    this.createInventoryDisplay()
+  }
+
+  update() {
+    this.player.update()
+  }
+
+  spawnSeeds() {
+    const seedCount = 5 // Adjust the number of seeds to spawn
+    this.seeds = []
+
+    for (let i = 0; i < seedCount; i++) {
+      const row = Phaser.Math.Between(0, this.ROWS - 1)
+      const col = Phaser.Math.Between(0, this.COLS - 1)
+      const x = this.grid.offsetX + col * this.grid.cellSize + this.grid.cellSize / 2
+      const y = this.grid.offsetY + row * this.grid.cellSize + this.grid.cellSize / 2
+
+      // Create a seed visual and store its data
+      const seed = this.add.circle(x, y, this.grid.cellSize / 6, 0xffff00)
+      seed.row = row
+      seed.col = col
+      this.seeds.push(seed)
+    }
+  }
+
+  handleSpaceAction() {
+    const playerRow = Math.floor((this.player.sprite.y - this.grid.offsetY) / this.grid.cellSize)
+    const playerCol = Math.floor((this.player.sprite.x - this.grid.offsetX) / this.grid.cellSize)
+
+    // Check if the player is on a seed
+    const seedIndex = this.seeds.findIndex(seed => seed.row === playerRow && seed.col === playerCol)
+    if (seedIndex >= 0) {
+      // Collect the seed
+      const seed = this.seeds[seedIndex]
+      this.inventory.push('Seed')
+      this.seeds.splice(seedIndex, 1) // Remove seed from array
+      seed.destroy() // Remove seed from grid
+      console.log('Collected a seed!')
+      this.updateInventoryDisplay()
+      return
     }
 
-    init() {
-        this.ROWS = 3;
-        this.COLS = 3;
+    // Check for a plant to reap or plant a seed
+    const cell = this.grid.getCell(playerRow, playerCol)
+    if (cell.plant) {
+      console.log(`Reaped: ${cell.plant.type}`)
+      this.inventory.push(`${cell.plant.type} (Level ${cell.plant.level})`)
+      if (cell.plant.sprite) {
+        cell.plant.sprite.destroy()
+      }
+      cell.plant = null
+      this.updateInventoryDisplay()
+    } else if (this.inventory.includes('Seed')) {
+      // Plant a random type of seed
+      const plantTypes = ['🌱', '🌿', '🌳']
+      const randomType = Phaser.Utils.Array.GetRandom(plantTypes)
+
+      console.log(`Planted a ${randomType} seed!`)
+      cell.plant = new Plant(randomType, 1)
+      const seedIndex = this.inventory.indexOf('Seed')
+      this.inventory.splice(seedIndex, 1) // Remove a seed from inventory
+      this.updateInventoryDisplay()
+
+      // Add planting animation
+      const x = this.grid.offsetX + playerCol * this.grid.cellSize + this.grid.cellSize / 2
+      const y = this.grid.offsetY + playerRow * this.grid.cellSize + this.grid.cellSize / 2
+      const plantText = this.add.text(x, y, randomType, {
+        fontSize: `${this.grid.cellSize / 3}px`,
+        align: 'center'
+      }).setOrigin(0.5)
+
+      cell.plant.sprite = plantText
+
+      this.tweens.add({
+        targets: plantText,
+        alpha: 1,
+        duration: 300
+      })
+    } else {
+      console.log('You need a seed to plant!')
     }
+  }
 
-    create() {
-        const grid = new Grid(this, this.ROWS, this.COLS);
-        grid.drawGrid(this);
+  advanceTurn() {
+    this.turn += 1
+    console.log(`Advancing to turn ${this.turn}`)
 
-        grid.on('turn-changed', () => {
-            console.log('Turn changed');
-        });
+    // Update sun and water levels for all cells
+    for (let row = 0; row < this.ROWS; row++) {
+      for (let col = 0; col < this.COLS; col++) {
+        const cell = this.grid.getCell(row, col)
 
-        // Create boxes and add plants
-        this.createBoxes(grid);
-        
-        this.player = new Player(this, grid, 1, 1, "player");
+        // Generate random sun and water levels
+        const randomSun = Phaser.Math.Between(0, 10)
+        const randomWater = Phaser.Math.Between(0, 3)
 
-        this.player.on('player-moved', () => {
-            grid.emit('turn-changed');
-        });
+        cell.sunlight = randomSun
+        cell.addWater(randomWater)
 
-        // Add interactivity to the grid for placing plants
-        this.input.on('pointerdown', (pointer) => {
-            const x = pointer.x;
-            const y = pointer.y;
-            this.handleGridClick(grid, x, y);
-        });
-
-        // Create inventory display
-        this.createInventoryDisplay();
-    }
-
-    createBoxes(grid) {
-        const plantTypes = ['🌱', '🌿', '🌳'];
-        this.boxes = [
-            { row: 0, col: 0, plants: [new Plant(plantTypes[0], 1)], type: plantTypes[0] },
-            { row: 0, col: 1, plants: [new Plant(plantTypes[1], 1)], type: plantTypes[1] },
-            { row: 0, col: 2, plants: [new Plant(plantTypes[2], 1)], type: plantTypes[2] }
-        ];
-
-        this.boxes.forEach(box => {
-            box.plants.forEach(plant => {
-                grid.addPlant(box.row, box.col, plant);
-            });
-        });
-
-        // Draw boxes with different colors and add interactivity
-        this.drawBoxes(grid, this.boxes);
-
-        // Check growth conditions periodically
-        this.time.addEvent({
-            delay: 1000,
-            callback: () => {
-                grid.checkGrowthConditions();
-                this.drawPlants(grid);
-            },
-            loop: true
-        });
-    }
-
-    drawBoxes(grid, boxes) {
-        boxes.forEach(box => {
-            const x = grid.offsetX + box.col * grid.cellSize;
-            const y = grid.offsetY + box.row * grid.cellSize;
-            const rect = this.add.rectangle(x, y, grid.cellSize, grid.cellSize, 0xff0000).setOrigin(0);
-            rect.setInteractive();
-            rect.on('pointerdown', () => this.handleBoxClick(box));
-            const text = this.add.text(x + grid.cellSize / 2, y + grid.cellSize / 2, '📦', {
-                fontSize: `${grid.cellSize / 2}px`,
-                align: 'center'
-            }).setOrigin(0.5);
-        });
-    }
-
-    drawPlants(grid) {
-        grid.plants.forEach(({ row, col, plant }) => {
-            const x = grid.offsetX + col * grid.cellSize + grid.cellSize / 2;
-            const y = grid.offsetY + row * grid.cellSize + grid.cellSize / 2;
-            const text = this.add.text(x, y, plant.type, {
-                fontSize: `${grid.cellSize / 3}px`, // Smaller font size for plant emoji
-                align: 'center'
-            }).setOrigin(0.5);
-        });
-    }
-
-    handleBoxClick(box) {
-        if (this.player.row === box.row && this.player.col === box.col) {
-            if (this.selectedPlant) {
-                // Return plant to the box
-                box.plants.push(this.selectedPlant);
-                this.inventory = this.inventory.filter(plant => plant !== this.selectedPlant);
-                this.selectedPlant = null;
-                this.updateInventoryDisplay();
-                alert(`Returned: ${box.plants[box.plants.length - 1].type} (Level ${box.plants[box.plants.length - 1].level}) to the box`);
-            } else {
-                // Pick up plant from the box
-                this.pickUpPlant(box.plants);
-            }
-        } else {
-            
-        }
-    }
-
-    pickUpPlant(plants) {
-        if (plants.length > 0) {
-            const plant = plants.pop();
-            this.inventory.push(plant);
-            this.selectedPlant = plant;
-            this.updateInventoryDisplay();
-            alert(`Picked up: ${plant.type} (Level ${plant.level})`);
-        }
-    }
-
-    handleGridClick(grid, x, y) {
-        const col = Math.floor((x - grid.offsetX) / grid.cellSize);
-        const row = Math.floor((y - grid.offsetY) / grid.cellSize);
-
-        if (row >= 0 && row < this.ROWS && col >= 0 && col < this.COLS) {
-            if (this.player.row === row && this.player.col === col) {
-                const cell = grid.getCell(row, col);
-                if (!cell.plant) {
-                    // Place plant from inventory
-                    if (!this.isBox(row, col)) {
-                        this.showPlantSelectionMenu(grid, row, col);
-                    }
-                }
-            } else {
-                alert('You need to be on top of the grid cell to interact with it.');
-            }
-        }
-    }
-
-    isBox(row, col) {
-        return this.boxes.some(box => box.row === row && box.col === col);
-    }
-
-    showPlantSelectionMenu(grid, row, col) {
-        if (this.plantSelectionMenu) {
-            this.plantSelectionMenu.destroy(); // Destroy existing menu
+        // Trigger plant growth
+        if (cell.plant) {
+          const nearbyPlants = this.grid.getNearbyPlants(row, col)
+          cell.plant.grow(cell.sunlight, cell.waterLevel, nearbyPlants)
         }
 
-        if (this.inventory.length > 0) {
-            const plantCounts = this.inventory.reduce((counts, plant) => {
-                counts[plant.type] = (counts[plant.type] || 0) + 1;
-                return counts;
-            }, {});
-
-            // Create a menu with buttons for each plant type
-            this.plantSelectionMenu = this.add.container(grid.offsetX + col * grid.cellSize, grid.offsetY + row * grid.cellSize);
-            let y = 0;
-
-            for (const [type, count] of Object.entries(plantCounts)) {
-                const button = this.add.text(0, y, `${type} (${count})`, {
-                    fontSize: '20px',
-                    fill: '#ffffff',
-                    backgroundColor: '#000000',
-                    padding: { left: 10, right: 10, top: 5, bottom: 5 }
-                }).setInteractive();
-
-                button.on('pointerdown', () => {
-                    const selectedPlant = this.inventory.find(plant => plant.type === type);
-                    if (selectedPlant) {
-                        grid.addPlant(row, col, selectedPlant);
-                        this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
-                        this.selectedPlant = null;
-                        this.drawPlants(grid);
-                        this.updateInventoryDisplay();
-                        this.plantSelectionMenu.destroy(); // Destroy the menu after placing the plant
-                        this.plantSelectionMenu = null; // Reset the menu reference
-                    }
-                });
-
-                this.plantSelectionMenu.add(button);
-                y += 30;
-            }
-        } else {
-            alert('No plants in inventory');
-        }
+        console.log(`Cell (${row}, ${col}) - Sun: ${randomSun}, Water: ${cell.waterLevel}`)
+      }
     }
 
-    createInventoryDisplay() {
-        this.inventoryText = this.add.text(10, this.scale.height - 50, '', {
-            fontSize: '20px',
-            fill: '#ffffff'
-        });
-        this.updateInventoryDisplay();
+    // Update the turn display
+    this.updateTurnDisplay()
+  }
+
+  createTurnDisplay() {
+    this.turnText = this.add.text(10, 10, `Turn: ${this.turn}`, {
+      fontSize: '20px',
+      fill: '#ffffff'
+    })
+  }
+
+  updateTurnDisplay() {
+    this.turnText.setText(`Turn: ${this.turn}`)
+  }
+
+  createAdvanceTurnButton() {
+    const button = this.add.text(10, 40, 'Next Turn', {
+      fontSize: '16px',
+      fill: '#ffffff',
+      backgroundColor: '#000'
+    }).setInteractive()
+
+    button.on('pointerdown', () => {
+      this.advanceTurn()
+    })
+  }
+
+  displayCellInfo(row, col) {
+    const cell = this.grid.getCell(row, col)
+    if (!this.cellInfoText) {
+      this.cellInfoText = this.add.text(10, 70, '', { fontSize: '16px', fill: '#ffffff' })
     }
+    this.cellInfoText.setText(`Cell (${row}, ${col}):\n☀️ Sunlight: ${cell.sunlight}\n💧 Water: ${cell.waterLevel}`)
+  }
 
-    updateInventoryDisplay() {
-        const plantCounts = this.inventory.reduce((counts, plant) => {
-            counts[plant.type] = (counts[plant.type] || 0) + 1;
-            return counts;
-        }, {});
+  createInventoryDisplay() {
+    this.inventoryText = this.add.text(10, this.scale.height - 50, '', {
+      fontSize: '20px',
+      fill: '#ffffff'
+    })
+    this.updateInventoryDisplay()
+  }
 
-        let inventoryText = 'Inventory:\n';
-        for (const [type, count] of Object.entries(plantCounts)) {
-            inventoryText += `${type}: ${count}\n`;
-        }
-
-        this.inventoryText.setText(inventoryText);
-    }
+  updateInventoryDisplay() {
+    this.inventoryText.setText(`Inventory: ${this.inventory.join(', ')}`)
+  }
 }
