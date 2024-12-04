@@ -3,10 +3,11 @@
 import Phaser from "phaser";
 
 import LoadScene from "./scenes/LoadScene.js";
+import MenuScene from './scenes/MenuScene.js';
 import GameScene from "./scenes/GameScene.js";
+import CreditsScene from './scenes/CreditsScene.js';
 
 let config = {
-    parent: 'phaser-game',
     type: Phaser.AUTO,
     width: 800, 
     height: 600, 
@@ -16,7 +17,7 @@ let config = {
           debug: false 
         }
     },
-    scene: [LoadScene, GameScene]
+    scene: [LoadScene, MenuScene, GameScene, CreditsScene]
 }
 
 const game = new Phaser.Game(config);
