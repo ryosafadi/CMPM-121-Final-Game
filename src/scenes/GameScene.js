@@ -23,7 +23,7 @@ export default class GameScene extends Phaser.Scene {
     this.grid = grid
     grid.drawGrid(this)
 
-    this.player = new Player(this, grid, 1, 1, 'astronaut')
+    this.player = new Player(this, grid, 1, 1, 'player')
 
     // Listen for player movement and update cell info
     this.player.on('player-cell-changed', ({ row, col }) => {

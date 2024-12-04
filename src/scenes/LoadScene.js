@@ -6,8 +6,7 @@ export default class LoadScene extends Phaser.Scene {
     }
 
     preload() {
-        // Ensure the path is correct relative to your project's root
-        this.load.image("player", "/assets/astronaut.png");
+        this.load.image("player", "../../assets/sprites/astronaut.png");
     }
 
     create() {

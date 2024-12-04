@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 
 export default class Player extends Phaser.Events.EventEmitter {
-  constructor(scene, grid, startRow, startCol, spriteKey= 'astronaut') {
+  constructor(scene, grid, startRow, startCol, spriteKey) {
     super()
 
     this.scene = scene
