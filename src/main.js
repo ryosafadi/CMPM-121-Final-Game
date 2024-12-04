@@ -8,10 +8,13 @@ import GameScene from "./scenes/GameScene.js";
 let config = {
     parent: 'phaser-game',
     type: Phaser.AUTO,
-    width: window.innerWidth,
-    height: window.innerHeight,
-    scale: {
-        mode: Phaser.Scale.RESIZE,
+    width: 800, 
+    height: 600, 
+    physics: { 
+        default: 'arcade',
+        arcade: {
+          debug: false 
+        }
     },
     scene: [LoadScene, GameScene]
 }
