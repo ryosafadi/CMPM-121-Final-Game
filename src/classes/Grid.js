@@ -57,6 +57,7 @@ export default class Grid extends Phaser.Events.EventEmitter {
         cell.plants.push(plant);
         this.plants.push({ row, col, plant });
     }
+    
 
     checkGrowthConditions() {
         this.plants.forEach(({ row, col, plant }) => {

@@ -9,7 +9,8 @@ export default class GameScene extends Phaser.Scene {
         super("GameScene");
         this.inventory = [];
         this.selectedPlant = null;
-        this.plantSelectionMenu = null; // Add this line to track the menu
+        this.plantSelectionMenu = null; 
+        this.drawnPlants = {};
     }
 
     init() {
@@ -30,6 +31,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Create boxes and add plants
         this.createBoxes(this.grid);
+        this.spawnPlant('🌱');
         
         this.player = new Player(this, this.grid, 1, 1, "player");
 
@@ -56,16 +58,10 @@ export default class GameScene extends Phaser.Scene {
     createBoxes(grid) {
         const plantTypes = ['🌱', '🌿', '🌳'];
         this.boxes = [
-            { row: 0, col: 0, plants: [new Plant(plantTypes[0], 1)], type: plantTypes[0] },
-            { row: 0, col: 1, plants: [new Plant(plantTypes[1], 1)], type: plantTypes[1] },
-            { row: 0, col: 2, plants: [new Plant(plantTypes[2], 1)], type: plantTypes[2] }
+            { row: 0, col: 0, plants: [], type: plantTypes[0] },
+            { row: 0, col: 1, plants: [], type: plantTypes[1] },
+            { row: 0, col: 2, plants: [], type: plantTypes[2] }
         ];
-
-        this.boxes.forEach(box => {
-            box.plants.forEach(plant => {
-                grid.addPlant(box.row, box.col, plant);
-            });
-        });
 
         // Draw boxes with different colors and add interactivity
         this.drawBoxes(grid, this.boxes);
@@ -89,7 +85,14 @@ export default class GameScene extends Phaser.Scene {
         });
     }
 
-        drawPlants(grid) {
+    drawPlants(grid) {
+        // Clear previously drawn plants
+        this.children.list.forEach(child => {
+            if (child.plantType) {
+                child.destroy();
+            }
+        });
+    
         grid.plants.forEach(({ row, col, plant }) => {
             const x = grid.offsetX + col * grid.cellSize + grid.cellSize / 2;
             const y = grid.offsetY + row * grid.cellSize + grid.cellSize / 2;
@@ -98,54 +101,90 @@ export default class GameScene extends Phaser.Scene {
                 align: 'center'
             }).setOrigin(0.5);
             text.setDepth(1); // Ensure the text is rendered on top
+    
+            // Tag the text object with plantType for easy identification
+            text.plantType = plant.type;
         });
     }
 
-    handleBoxClick(box) {
-        if (this.player.row === box.row && this.player.col === box.col) {
-            if (this.selectedPlant) {
-                // Return plant to the box
-                box.plants.push(this.selectedPlant);
-                this.inventory = this.inventory.filter(plant => plant !== this.selectedPlant);
-                this.selectedPlant = null;
-                this.updateInventoryDisplay();
-                alert(`Returned: ${box.plants[box.plants.length - 1].type} (Level ${box.plants[box.plants.length - 1].level}) to the box`);
-            } else {
-                // Pick up plant from the box
-                this.pickUpPlant(box.plants);
-            }
-        } else {
-        }
-    }
-
-    pickUpPlant(plants) {
-        if (plants.length > 0) {
-            const plant = plants.pop();
-            this.inventory.push(plant);
-            this.selectedPlant = plant;
-            this.updateInventoryDisplay();
-            alert(`Picked up: ${plant.type} (Level ${plant.level})`);
-        }
-    }
-
-    handleGridClick(grid, x, y) {
-        const col = Math.floor((x - grid.offsetX) / grid.cellSize);
-        const row = Math.floor((y - grid.offsetY) / grid.cellSize);
-
-        if (row >= 0 && row < this.ROWS && col >= 0 && col < this.COLS) {
-            if (this.player.row === row && this.player.col === col) {
-                const cell = grid.getCell(row, col);
-                if (!cell.plant) {
-                    // Place plant from inventory
-                    if (!this.isBox(row, col)) {
-                        this.showPlantSelectionMenu(grid, row, col);
+                handleBoxClick(box) {
+            if (this.player.row === box.row && this.player.col === box.col) {
+                if (this.selectedPlant) {
+                    // Return plant to the box
+                    box.plants.push(this.selectedPlant);
+                    this.inventory = this.inventory.filter(plant => plant !== this.selectedPlant);
+                    this.selectedPlant = null;
+                    this.updateInventoryDisplay();
+                    this.displayCellInfo(box.row, box.col); // Update cell info display
+                    alert(`Returned: ${box.plants[box.plants.length - 1].type} (Level ${box.plants[box.plants.length - 1].level}) to the box`);
+                } else if (box.plants.length > 0) {
+                    // Pick up the plant from the box
+                    const plant = box.plants.pop();
+                    this.inventory.push(plant);
+                    this.selectedPlant = plant;
+                    this.updateInventoryDisplay();
+                    this.displayCellInfo(box.row, box.col); // Update cell info display
+                    alert(`Picked up: ${plant.type} (Level ${plant.level})`);
+        
+                    // Remove the drawn plant from the scene
+                    if (this.drawnPlants[box.row] && this.drawnPlants[box.row][box.col]) {
+                        this.drawnPlants[box.row][box.col].destroy();
+                        delete this.drawnPlants[box.row][box.col];
                     }
                 }
-            } else {
-                alert('You need to be on top of the grid cell to interact with it.');
             }
         }
-    }
+
+                pickUpPlant(plants, row, col) {
+            if (plants.length > 0) {
+                const plant = plants.pop();
+                this.inventory.push(plant);
+                this.selectedPlant = plant;
+                this.updateInventoryDisplay();
+        
+                // Remove the drawn plant from the scene
+                if (this.drawnPlants[row] && this.drawnPlants[row][col]) {
+                    this.drawnPlants[row][col].destroy();
+                    delete this.drawnPlants[row][col];
+                }
+        
+                // Remove the plant from the grid
+                this.grid.removePlant(row, col, plant);
+        
+                // Update cell info display
+                if (plants.length === 0) {
+                    this.cellInfoText.setText(''); // Clear the cell info text if no plants are left
+                } else {
+                    this.displayCellInfo(row, col); // Update cell info display
+                }
+        
+                alert(`Picked up: ${plant.type} (Level ${plant.level})`);
+            }
+        }
+
+                handleGridClick(grid, x, y) {
+            const col = Math.floor((x - grid.offsetX) / grid.cellSize);
+            const row = Math.floor((y - grid.offsetY) / grid.cellSize);
+        
+            if (row >= 0 && row < this.ROWS && col >= 0 && col < this.COLS) {
+                if (this.player.row === row && this.player.col === col) {
+                    const cell = grid.getCell(row, col);
+                    if (!cell.plant) {
+                        // Place plant from inventory
+                        if (!this.isBox(row, col)) {
+                            this.showPlantSelectionMenu(grid, row, col);
+                        }
+                    } else {
+                        // Pick up plant from the cell
+                        this.pickUpPlant(cell.plants, row, col);
+                        cell.plants = []; // Clear the cell's plants array
+                        this.displayCellInfo(row, col); // Update cell info display
+                    }
+                } else {
+                    alert('You need to be on top of the grid cell to interact with it.');
+                }
+            }
+        }
 
     isBox(row, col) {
         return this.boxes.some(box => box.row === row && box.col === col);
@@ -250,10 +289,21 @@ export default class GameScene extends Phaser.Scene {
 
         button.on('pointerdown', () => {
             this.advanceTurn();
+            
+            // Spawn plants based on the turn number
+            if (this.turn % 3 === 0) {
+                this.spawnPlant('🌱');
+            }
+            if (this.turn % 1 === 0) {
+                this.spawnPlant('🌿');
+            }
+            if (this.turn % 2 === 0) {
+                this.spawnPlant('🌳');
+            }
         });
     }
 
-    displayCellInfo(row, col) {
+        displayCellInfo(row, col) {
         const cell = this.grid.getCell(row, col);
         if (!this.cellInfoText) {
             this.cellInfoText = this.add.text(10, 70, '', { fontSize: '16px', fill: '#ffffff' });
@@ -262,9 +312,8 @@ export default class GameScene extends Phaser.Scene {
         let cellInfo = `Cell (${row}, ${col}):\n☀️ Sunlight: ${cell.sunlight}\n💧 Water: ${cell.water}`;
     
         if (cell.plants && cell.plants.length > 0) {
-            cell.plants.forEach(plant => {
-                cellInfo += `\n${plant.type} Level: ${plant.level}`;
-            });
+            const plant = cell.plants[cell.plants.length - 1]; // Get the newest plant
+            cellInfo += `\n${plant.type} Level: ${plant.level}`;
         }
     
         this.cellInfoText.setText(cellInfo);
@@ -300,5 +349,15 @@ export default class GameScene extends Phaser.Scene {
             }
         });
         return nearbyPlants;
+    }
+
+    spawnPlant(type) {
+        const plant = new Plant(type, 1);
+        const box = this.boxes.find(box => box.type === type);
+        if (box) {
+            box.plants.push(plant);
+            this.grid.addPlant(box.row, box.col, plant);
+            this.drawPlants(this.grid);
+        }
     }
 }
