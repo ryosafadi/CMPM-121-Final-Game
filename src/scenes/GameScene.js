@@ -18,30 +18,38 @@ export default class GameScene extends Phaser.Scene {
     }
 
     create() {
-        const grid = new Grid(this, this.ROWS, this.COLS);
-        grid.drawGrid(this);
+        this.grid = new Grid(this, this.ROWS, this.COLS);
+        this.grid.offsetX += 150; // Shift the grid to the right to make space for the text
+        this.grid.drawGrid(this);
+        this.turn = 0;
 
-        grid.on('turn-changed', () => {
-            console.log('Turn changed');
-        });
+        
+        this.grid.checkGrowthConditions();
+        this.drawPlants(this.grid);
+            
 
         // Create boxes and add plants
-        this.createBoxes(grid);
+        this.createBoxes(this.grid);
         
-        this.player = new Player(this, grid, 1, 1, "player");
+        this.player = new Player(this, this.grid, 1, 1, "player");
 
         this.player.on('player-moved', () => {
-            grid.emit('turn-changed');
+            this.displayCellInfo(this.player.row, this.player.col);
         });
 
         // Add interactivity to the grid for placing plants
         this.input.on('pointerdown', (pointer) => {
             const x = pointer.x;
             const y = pointer.y;
-            this.handleGridClick(grid, x, y);
+            this.handleGridClick(this.grid, x, y);
         });
 
-        // Create inventory display
+        // Display initial sun and water info for the player's starting cell
+        this.displayCellInfo(1, 1);
+
+        // Display turn info
+        this.createTurnDisplay();
+        this.createAdvanceTurnButton();
         this.createInventoryDisplay();
     }
 
@@ -62,15 +70,8 @@ export default class GameScene extends Phaser.Scene {
         // Draw boxes with different colors and add interactivity
         this.drawBoxes(grid, this.boxes);
 
-        // Check growth conditions periodically
-        this.time.addEvent({
-            delay: 1000,
-            callback: () => {
-                grid.checkGrowthConditions();
-                this.drawPlants(grid);
-            },
-            loop: true
-        });
+        // Draw plants on top of the boxes
+        this.drawPlants(grid);
     }
 
     drawBoxes(grid, boxes) {
@@ -84,10 +85,11 @@ export default class GameScene extends Phaser.Scene {
                 fontSize: `${grid.cellSize / 2}px`,
                 align: 'center'
             }).setOrigin(0.5);
+            rect.setDepth(0); // Ensure the box is rendered below the text
         });
     }
 
-    drawPlants(grid) {
+        drawPlants(grid) {
         grid.plants.forEach(({ row, col, plant }) => {
             const x = grid.offsetX + col * grid.cellSize + grid.cellSize / 2;
             const y = grid.offsetY + row * grid.cellSize + grid.cellSize / 2;
@@ -95,6 +97,7 @@ export default class GameScene extends Phaser.Scene {
                 fontSize: `${grid.cellSize / 3}px`, // Smaller font size for plant emoji
                 align: 'center'
             }).setOrigin(0.5);
+            text.setDepth(1); // Ensure the text is rendered on top
         });
     }
 
@@ -112,7 +115,6 @@ export default class GameScene extends Phaser.Scene {
                 this.pickUpPlant(box.plants);
             }
         } else {
-            
         }
     }
 
@@ -153,17 +155,17 @@ export default class GameScene extends Phaser.Scene {
         if (this.plantSelectionMenu) {
             this.plantSelectionMenu.destroy(); // Destroy existing menu
         }
-
+    
         if (this.inventory.length > 0) {
             const plantCounts = this.inventory.reduce((counts, plant) => {
                 counts[plant.type] = (counts[plant.type] || 0) + 1;
                 return counts;
             }, {});
-
+    
             // Create a menu with buttons for each plant type
             this.plantSelectionMenu = this.add.container(grid.offsetX + col * grid.cellSize, grid.offsetY + row * grid.cellSize);
             let y = 0;
-
+    
             for (const [type, count] of Object.entries(plantCounts)) {
                 const button = this.add.text(0, y, `${type} (${count})`, {
                     fontSize: '20px',
@@ -171,8 +173,8 @@ export default class GameScene extends Phaser.Scene {
                     backgroundColor: '#000000',
                     padding: { left: 10, right: 10, top: 5, bottom: 5 }
                 }).setInteractive();
-
-                button.on('pointerdown', () => {
+    
+                button.on('pointerdown', (event) => {
                     const selectedPlant = this.inventory.find(plant => plant.type === type);
                     if (selectedPlant) {
                         grid.addPlant(row, col, selectedPlant);
@@ -182,9 +184,11 @@ export default class GameScene extends Phaser.Scene {
                         this.updateInventoryDisplay();
                         this.plantSelectionMenu.destroy(); // Destroy the menu after placing the plant
                         this.plantSelectionMenu = null; // Reset the menu reference
+                        this.displayCellInfo(row, col); // Display cell info after placing the plant
                     }
+                    event.stopPropagation();
                 });
-
+    
                 this.plantSelectionMenu.add(button);
                 y += 30;
             }
@@ -193,25 +197,108 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    createTurnDisplay() {
+        this.turnText = this.add.text(10, 10, `Turn: ${this.turn}`, {
+          fontSize: '20px',
+          fill: '#ffffff'
+        })
+      }
+
+    advanceTurn() {
+        this.grid.emit('turn-changed');
+        this.turn += 1;
+        console.log(`Advancing to turn ${this.turn}`);
+    
+        // Update sun and water levels for all cells
+        for (let row = 0; row < this.ROWS; row++) {
+            for (let col = 0; col < this.COLS; col++) {
+                const cell = this.grid.getCell(row, col);
+    
+                // Generate random sun and water levels
+                const randomSun = Phaser.Math.Between(0, 10);
+                const randomWater = Phaser.Math.Between(0, 5);
+    
+                cell.sunlight = randomSun;
+                cell.water = randomWater;
+    
+                // Trigger plant growth
+                if (cell.plants && cell.plants.length > 0) {
+                    const nearbyPlants = this.grid.getNearbyPlants(row, col);
+                    cell.plants.forEach(plant => {
+                        plant.grow(cell.sunlight, cell.water, nearbyPlants);
+                    });
+                }
+                console.log(`Cell (${row}, ${col}) - Sun: ${cell.sunlight}, Water: ${cell.water}`);
+            }
+        }
+    
+        // Update the turn display
+        this.updateTurnDisplay();
+        this.displayCellInfo(this.player.row, this.player.col);
+    }
+
+    updateTurnDisplay() {
+        this.turnText.setText(`Turn: ${this.turn}`);
+    }
+
+    createAdvanceTurnButton() {
+        const button = this.add.text(10, 40, 'Next Turn', {
+            fontSize: '16px',
+            fill: '#ffffff',
+            backgroundColor: '#000'
+        }).setInteractive();
+
+        button.on('pointerdown', () => {
+            this.advanceTurn();
+        });
+    }
+
+    displayCellInfo(row, col) {
+        const cell = this.grid.getCell(row, col);
+        if (!this.cellInfoText) {
+            this.cellInfoText = this.add.text(10, 70, '', { fontSize: '16px', fill: '#ffffff' });
+        }
+    
+        let cellInfo = `Cell (${row}, ${col}):\n☀️ Sunlight: ${cell.sunlight}\n💧 Water: ${cell.water}`;
+    
+        if (cell.plants && cell.plants.length > 0) {
+            cell.plants.forEach(plant => {
+                cellInfo += `\n${plant.type} Level: ${plant.level}`;
+            });
+        }
+    
+        this.cellInfoText.setText(cellInfo);
+    }
+
     createInventoryDisplay() {
         this.inventoryText = this.add.text(10, this.scale.height - 50, '', {
-            fontSize: '20px',
+            fontSize: '16px',
             fill: '#ffffff'
         });
         this.updateInventoryDisplay();
     }
 
     updateInventoryDisplay() {
-        const plantCounts = this.inventory.reduce((counts, plant) => {
-            counts[plant.type] = (counts[plant.type] || 0) + 1;
-            return counts;
-        }, {});
+        const inventoryText = this.inventory.map(plant => `${plant.type} (Level ${plant.level})`).join(', ');
+        this.inventoryText.setText(`Inventory: ${inventoryText}`);
+    }
 
-        let inventoryText = 'Inventory:\n';
-        for (const [type, count] of Object.entries(plantCounts)) {
-            inventoryText += `${type}: ${count}\n`;
-        }
-
-        this.inventoryText.setText(inventoryText);
+    getNearbyPlants(row, col) {
+        const nearbyPlants = [];
+        const directions = [
+            { dr: -1, dc: 0 }, { dr: 1, dc: 0 },
+            { dr: 0, dc: -1 }, { dr: 0, dc: 1 }
+        ];
+        directions.forEach(({ dr, dc }) => {
+            const newRow = row + dr;
+            const newCol = col + dc;
+            if (newRow >= 0 && newRow < this.rows && newCol >= 0 && newCol < this.cols) {
+                const cell = this.getCell(newRow, newCol);
+                if (cell && cell.plant && !cell.plant.isPlaceholder) {
+                    nearbyPlants.push(cell.plant);
+                }
+            }
+        });
+        return nearbyPlants;
     }
 }

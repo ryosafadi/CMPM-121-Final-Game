@@ -30,7 +30,10 @@ export default class Grid extends Phaser.Events.EventEmitter {
         for (let row = 0; row < rows; row++) {
             for (let col = 0; col < cols; col++) {
                 const index = (row * cols + col) * 2; // Calculate the byte offset
-                this.gridCells.push(new GridCell(this.dataArray, index));
+                const cell = new GridCell(this.dataArray, index)
+                cell.sunlight = Phaser.Math.Between(0, 10) // Random sunlight level
+                cell.water = Phaser.Math.Between(0, 5) // Random water level
+                this.gridCells.push(cell)
             }
         }
 
@@ -39,13 +42,19 @@ export default class Grid extends Phaser.Events.EventEmitter {
     }
 
     getCell(row, col) {
-        const index = row * this.cols + col;
-        return this.gridCells[index];
+        if (row >= 0 && row < this.rows && col >= 0 && col < this.cols) {
+            const index = row * this.cols + col;
+            return this.gridCells[index];
+        }
+        return null; // Return null if the row or col is out of bounds
     }
 
     addPlant(row, col, plant) {
         const cell = this.getCell(row, col);
-        cell.plant = plant;
+        if (!cell.plants) {
+            cell.plants = [];
+        }
+        cell.plants.push(plant);
         this.plants.push({ row, col, plant });
     }
 
@@ -70,8 +79,10 @@ export default class Grid extends Phaser.Events.EventEmitter {
             const newCol = col + dc;
             if (newRow >= 0 && newRow < this.rows && newCol >= 0 && newCol < this.cols) {
                 const cell = this.getCell(newRow, newCol);
-                if (cell.plant) {
-                    nearbyPlants.push(cell.plant);
+                if (cell && cell.plants) {
+                    cell.plants.forEach(plant => {
+                        nearbyPlants.push(plant);
+                    });
                 }
             }
         });
@@ -98,4 +109,5 @@ export default class Grid extends Phaser.Events.EventEmitter {
             }
         }
     }
+
 }
