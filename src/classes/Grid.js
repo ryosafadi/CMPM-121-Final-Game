@@ -58,6 +58,13 @@ export default class Grid extends Phaser.Events.EventEmitter {
         this.plants.push({ row, col, plant });
     }
     
+    removePlant(row, col, plant) {
+        const cell = this.getCell(row, col);
+        if (cell && cell.plants) {
+            cell.plants = cell.plants.filter(p => p !== plant);
+        }
+        this.plants = this.plants.filter(p => p.row !== row || p.col !== col || p.plant !== plant);
+    }
 
     checkGrowthConditions() {
         this.plants.forEach(({ row, col, plant }) => {
