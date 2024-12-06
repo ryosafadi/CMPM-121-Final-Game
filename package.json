@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cmpm-121-final-game": "file:",
     "phaser": "^3.87.0"
   },
   "devDependencies": {
