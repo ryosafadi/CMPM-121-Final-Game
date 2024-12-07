@@ -2,12 +2,14 @@ import Phaser from 'phaser';
 import Grid from '../classes/Grid.js';
 import Plant from '../classes/Plant.js';
 import Player from '../classes/Player.js';
+import { saveGame, loadGame, autoSaveGame, loadAutoSave, checkAutoSave } from '../classes/SaveState.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super("GameScene");
         this.inventory = [];
         this.selectedPlant = null;
+        this.plantSelectionMenu = null; 
         this.drawnPlants = {};
         this.plantsSold = 0;
         this.winCondition = 5; // Number of plants to sell to win
@@ -41,22 +43,67 @@ export default class GameScene extends Phaser.Scene {
         });
 
         // Create UI elements
+        this.createSaveLoadButtons();
         this.createTurnDisplay();
         this.createAdvanceTurnButton();
         this.createInventoryDisplay();
         this.createSellButton();
         this.createRandomSeedButtons();
+        this.displayCellInfo(this.player.row, this.player.col);
+
+        // Check for auto-save on game launch
+        if (checkAutoSave()) {
+            if (confirm("Do you want to continue where you left off?")) {
+                loadAutoSave(this.grid, this.inventory, this.player, this);
+            }
+        }
+
+        // Set up auto-save interval
+        this.time.addEvent({
+            delay: 30000, // Auto-save every 30 seconds
+            callback: () => {
+                autoSaveGame(this.grid, this.inventory, this.player, this.turn);
+            },
+            callbackScope: this,
+            loop: true
+        });
+    }
+
+    createSaveLoadButtons() {
+        const saveButton = this.add.text(10, 10, 'Save Game', {
+            fontSize: '16px',
+            fill: '#ffffff',
+            backgroundColor: '#000'
+        }).setInteractive();
+
+        saveButton.on('pointerdown', () => {
+            saveGame(this.grid, this.inventory, this.player, this.turn);
+        });
+
+        const loadButton = this.add.text(10, 40, 'Load Game', {
+            fontSize: '16px',
+            fill: '#ffffff',
+            backgroundColor: '#000'
+        }).setInteractive();
+
+        loadButton.on('pointerdown', () => {
+            loadGame(this.grid, this.inventory, this.player, this);
+        });
     }
 
     createTurnDisplay() {
-        this.turnText = this.add.text(10, 10, `Turn: ${this.turn}`, {
+        this.turnText = this.add.text(10, 70, `Turn: ${this.turn}`, {
             fontSize: '16px',
             fill: '#ffffff'
         });
     }
 
+    updateTurnDisplay() {
+        this.turnText.setText(`Turn: ${this.turn}`);
+    }
+
     createAdvanceTurnButton() {
-        const button = this.add.text(10, 40, 'Next Turn', {
+        const button = this.add.text(10, 100, 'Next Turn', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -76,15 +123,15 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createSellButton() {
-        const button = this.add.text(10, 70, 'Sell Plant', {
+        const button = this.add.text(10, 130, 'Sell Plant', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
         }).setInteractive();
-    
-        button.on('pointerdown', (pointer, localX, localY, event) => {
-            const selectedPlant = this.inventory.find(plant => plant.level >= 3);
-            if (selectedPlant) {
+
+        button.on('pointerdown', (event) => {
+            const selectedPlant = this.selectedPlant;
+            if (selectedPlant && selectedPlant.level === 3) {
                 this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
                 alert(`Sold: ${selectedPlant.type} (Level ${selectedPlant.level})`);
                 this.selectedPlant = null;
@@ -98,14 +145,14 @@ export default class GameScene extends Phaser.Scene {
             }
             event.stopPropagation();
         });
-    
+
         this.add.existing(button);
     }
 
     createRandomSeedButtons() {
         const plantTypes = ['🌱', '🌿', '🌳'];
         plantTypes.forEach((type, index) => {
-            const button = this.add.text(10, 100 + index * 30, `Add ${type} Seed`, {
+            const button = this.add.text(10, 160 + index * 30, `Add ${type} Seed`, {
                 fontSize: '16px',
                 fill: '#ffffff',
                 backgroundColor: '#000'
@@ -114,66 +161,36 @@ export default class GameScene extends Phaser.Scene {
             button.on('pointerdown', () => {
                 this.addRandomSeed(type);
             });
+
+            this.add.existing(button);
         });
     }
 
-    addRandomSeed(type) {
-        const plant = new Plant(type, 1);
-        this.inventory.push(plant);
-        this.updateInventoryDisplay();
-        alert(`Added ${type} seed to inventory`);
+    updateInventoryDisplay() {
+        const inventoryText = this.inventory.map(plant => `${plant.type} (Level ${plant.level})`).join(',\n');
+        this.inventoryText.setText(`Inventory:\n${inventoryText}`);
     }
 
-    showPlantSelectionMenu(grid) {
-        if (this.plantSelectionMenu) {
-            this.plantSelectionMenu.destroy(); // Destroy existing menu
+    displayCellInfo(row, col) {
+        const cell = this.grid.getCell(row, col);
+        if (!this.cellInfoText) {
+            this.cellInfoText = this.add.text(10, 250, '', { fontSize: '16px', fill: '#ffffff' }); // Adjusted position
         }
 
-        if (this.inventory.length > 0) {
-            const plantCounts = this.inventory.reduce((counts, plant) => {
-                counts[plant.type] = (counts[plant.type] || 0) + 1;
-                return counts;
-            }, {});
+        let cellInfo = `Cell (${row}, ${col}):\n☀️ Sunlight: ${cell.sunlight}\n💧 Water: ${cell.water}`;
 
-            // Create a menu with buttons for each plant type
-            this.plantSelectionMenu = this.add.container(grid.offsetX + this.player.col * grid.cellSize, grid.offsetY + this.player.row * grid.cellSize);
-            let y = 0;
-
-            for (const [type, count] of Object.entries(plantCounts)) {
-                const button = this.add.text(0, y, `${type} (${count})`, {
-                    fontSize: '20px',
-                    fill: '#ffffff',
-                    backgroundColor: '#000000',
-                    padding: { left: 10, right: 10, top: 5, bottom: 5 }
-                }).setInteractive();
-
-                button.on('pointerdown', (pointer, localX, localY, event) => {
-                    const selectedPlant = this.inventory.find(plant => plant.type === type);
-                    if (selectedPlant) {
-                        const newPlant = new Plant(selectedPlant.type, selectedPlant.level);
-                        grid.addPlant(this.player.row, this.player.col, newPlant);
-                        this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
-                        this.selectedPlant = null;
-                        this.drawPlants(grid);
-                        this.updateInventoryDisplay();
-                        this.plantSelectionMenu.destroy(); // Destroy the menu after placing the plant
-                        this.plantSelectionMenu = null; // Reset the menu reference
-                        this.displayCellInfo(this.player.row, this.player.col); // Display cell info after placing the plant
-                    }
-                    event.stopPropagation();
-                });
-
-                this.plantSelectionMenu.add(button);
-                y += 30;
-            }
-        } else {
-            alert('No plants in inventory');
+        if (cell.plants && cell.plants.length > 0) {
+            const plant = cell.plants[cell.plants.length - 1]; // Get the newest plant
+            cellInfo += `\n${plant.type} Level: ${plant.level}`;
         }
+
+        this.cellInfoText.setText(cellInfo);
     }
 
     advanceTurn() {
         this.turn += 1;
-        this.turnText.setText(`Turn: ${this.turn}`);
+        this.updateTurnDisplay();
+        this.displayCellInfo(this.player.row, this.player.col);
 
         // Update sun and water levels for all cells
         for (let row = 0; row < this.ROWS; row++) {
@@ -196,14 +213,6 @@ export default class GameScene extends Phaser.Scene {
                 }
             }
         }
-
-        // Update the turn display
-        this.updateTurnDisplay();
-        this.displayCellInfo(this.player.row, this.player.col);
-    }
-
-    updateTurnDisplay() {
-        this.turnText.setText(`Turn: ${this.turn}`);
     }
 
     handleGridClick(grid, x, y) {
@@ -281,24 +290,50 @@ export default class GameScene extends Phaser.Scene {
         });
     }
 
-    updateInventoryDisplay() {
-        const inventoryText = this.inventory.map(plant => `${plant.type} (Level ${plant.level})`).join(',\n');
-        this.inventoryText.setText(`Inventory:\n${inventoryText}`);
-    }
-
-    displayCellInfo(row, col) {
-        const cell = this.grid.getCell(row, col);
-        if (!this.cellInfoText) {
-            this.cellInfoText = this.add.text(10, 200, '', { fontSize: '16px', fill: '#ffffff' });
+    showPlantSelectionMenu(grid) {
+        if (this.plantSelectionMenu) {
+            this.plantSelectionMenu.destroy(); // Destroy existing menu
         }
 
-        let cellInfo = `Cell (${row}, ${col}):\n☀️ Sunlight: ${cell.sunlight}\n💧 Water: ${cell.water}`;
+        if (this.inventory.length > 0) {
+            const plantCounts = this.inventory.reduce((counts, plant) => {
+                counts[plant.type] = (counts[plant.type] || 0) + 1;
+                return counts;
+            }, {});
 
-        if (cell.plants && cell.plants.length > 0) {
-            const plant = cell.plants[cell.plants.length - 1]; // Get the newest plant
-            cellInfo += `\n${plant.type} Level: ${plant.level}`;
+            // Create a menu with buttons for each plant type
+            this.plantSelectionMenu = this.add.container(grid.offsetX + this.player.col * grid.cellSize, grid.offsetY + this.player.row * grid.cellSize);
+            let y = 0;
+
+            for (const [type, count] of Object.entries(plantCounts)) {
+                const button = this.add.text(0, y, `${type} (${count})`, {
+                    fontSize: '20px',
+                    fill: '#ffffff',
+                    backgroundColor: '#000000',
+                    padding: { left: 10, right: 10, top: 5, bottom: 5 }
+                }).setInteractive();
+
+                button.on('pointerdown', (pointer, localX, localY, event) => {
+                    const selectedPlant = this.inventory.find(plant => plant.type === type);
+                    if (selectedPlant) {
+                        const newPlant = new Plant(selectedPlant.type, selectedPlant.level);
+                        grid.addPlant(this.player.row, this.player.col, newPlant);
+                        this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
+                        this.selectedPlant = null;
+                        this.drawPlants(grid);
+                        this.updateInventoryDisplay();
+                        this.plantSelectionMenu.destroy(); // Destroy the menu after placing the plant
+                        this.plantSelectionMenu = null; // Reset the menu reference
+                        this.displayCellInfo(this.player.row, this.player.col); // Display cell info after placing the plant
+                    }
+                    event.stopPropagation();
+                });
+
+                this.plantSelectionMenu.add(button);
+                y += 30;
+            }
+        } else {
+            alert('No plants in inventory');
         }
-
-        this.cellInfoText.setText(cellInfo);
     }
 }
