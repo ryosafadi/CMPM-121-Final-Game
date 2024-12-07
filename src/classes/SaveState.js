@@ -1,4 +1,5 @@
 // classes/SaveState.js
+import Plant from './Plant.js';
 
 export function clearAutoSave() {
     localStorage.removeItem('auto_save');
@@ -12,7 +13,13 @@ export function serializeGameState(grid, inventory, player, turn) {
             row: player.row,
             col: player.col
         },
-        turn: turn
+        turn: turn,
+        plants: grid.plants.map(({ row, col, plant }) => ({
+            row,
+            col,
+            type: plant.type,
+            level: plant.level
+        }))
     };
     return JSON.stringify(gameState);
 }
@@ -67,6 +74,13 @@ export function deserializeGameState(gameState, grid, inventory, player, scene) 
     player.row = state.player.row;
     player.col = state.player.col;
     scene.turn = state.turn;
+
+    // Restore plants
+    grid.plants = state.plants.map(({ row, col, type, level }) => {
+        const plant = new Plant(type, level);
+        grid.addPlant(row, col, plant);
+        return { row, col, plant };
+    });
 
     // Update the game visuals
     grid.drawGrid(scene);
