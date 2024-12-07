@@ -3,6 +3,8 @@
 import Phaser from "phaser";
 
 import LoadScene from "./scenes/LoadScene.js";
+import MenuScene from "./scenes/MenuScene.js";
+import CreditsScene from "./scenes/CreditsScene.js";
 import GameScene from "./scenes/GameScene.js";
 
 let config = {
@@ -13,7 +15,7 @@ let config = {
     scale: {
         mode: Phaser.Scale.RESIZE,
     },
-    scene: [LoadScene, GameScene]
+    scene: [LoadScene, MenuScene, CreditsScene, GameScene]
 }
 
 const game = new Phaser.Game(config);
