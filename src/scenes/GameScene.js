@@ -166,6 +166,13 @@ export default class GameScene extends Phaser.Scene {
         });
     }
 
+    addRandomSeed(type) {
+        const plant = new Plant(type, 1);
+        this.inventory.push(plant);
+        this.updateInventoryDisplay();
+        alert(`Added ${type} seed to inventory`);
+    }
+
     updateInventoryDisplay() {
         const inventoryText = this.inventory.map(plant => `${plant.type} (Level ${plant.level})`).join(',\n');
         this.inventoryText.setText(`Inventory:\n${inventoryText}`);
