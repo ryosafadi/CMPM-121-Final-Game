@@ -1,14 +1,26 @@
 export default class Plant {
-  constructor(type, level = 1) {
-    this.type = type // Plant type 
-    this.level = level // Growth level
-  }
-
-  grow(sunlight, water) {
-    // Growth condition: Sunlight and water must be greater than 0
-    if (sunlight > 0 && water > 0) {
-      this.level++
-      console.log(`${this.type} grew to level ${this.level}!`)
+    constructor(type, level) {
+        this.type = type;
+        this.level = level;
     }
-  }
+
+    grow(sunlight, water, nearbyPlants) {
+        console.log(`Plant ${this.type} at level ${this.level} growing with sunlight: ${sunlight}, water: ${water}, nearby plants: ${nearbyPlants.length}`);
+        
+        // Implement growth logic based on sunlight, water, and nearby plants
+        if (sunlight >= 5 && water >= 5) {
+            if ((this.type === '🌱' && nearbyPlants.length === 0) ||
+                (this.type === '🌿' && nearbyPlants.length === 1) ||
+                (this.type === '🌳' && nearbyPlants.length >= 2)) {
+                if (this.level < 3) {
+                    this.level++;
+                    console.log(`Plant ${this.type} grew to level ${this.level}`);
+                } else {
+                    console.log(`Plant ${this.type} is already at the maximum level of 3`);
+                }
+            } else {
+                console.log(`Plant ${this.type} did not grow. Conditions - Sunlight: ${sunlight}, Water: ${water}, Nearby Plants: ${nearbyPlants.length}`);
+            }
+        }
+    }
 }

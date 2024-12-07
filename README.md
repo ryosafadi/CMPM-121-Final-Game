@@ -23,3 +23,41 @@ Design Co-Leads: Arno Wu, Patrick James Alcantara
 ## Outlook
 
 For this game project, our goal is to try to create a 2D grid on the surface of a planet that “exists” in 3D space. This means that the player will only see a portion of the planet that can be represented in two dimensions, but the planet can also “spin” so that the player can explore more of it, one chunk at a time. We plan to do this by creating the illusion of a third dimension through visuals. This will most likely be the hardest part of our project to implement, but we believe that it will help pique our players’ interests if successful. This challenge will also give us the chance to improve our collaboration skills and put what we’ve learned in CMPM 120 and 121 into practice.
+
+#
+
+## Devlog Entry - [12/06/2024]
+
+## How we satisfied the F0 software requirements
+
+1. [F0.a] You control a character moving over a 2D grid.
+
+We created a grid of individual grid cell instances so that we can reference each grid cell based on its position within the grid. We then added a player character that can be controlled using the arrow keys. This character moves discretely between the gridcells, moving from grid cell to adjacent grid cell depending on which arrow key is was pressed.
+
+2. [F0.b] You advance time manually in the turn-based simulation.
+
+We have implemented a "next turn" button that advances time by one turn in the simulation each time it is pressed. This affects the sunlight and water levels of the grid cells, as well as the growth levels of any plants on the grid that have met their growth conditions.
+
+3. [F0.c] You can reap or sow plants on grid cells only when you are near them.
+
+We have buttons that, when clicked, add a plant seed to the player's inventory. The player can then click on a grid cell and select the seed they wish to plant from their inventory. When a plant reaches level 3, it can be harvested and sold to progress toward the player's objective.
+
+4. [F0.d] Grid cells have sun and water levels. The incoming sun and water for each cell is somehow randomly generated each turn. Sun energy cannot be stored in a cell (it is used immediately or lost) while water moisture can be slowly accumulated over several turns.
+
+Each grid cell has its own sun and water values that are randomly generated each turn. Both traits are randomized to a value between 0 and 10, and do not carry over between turns. Plants can only grow on cells that have met or exceeded a certain sun and water threshold.
+
+5. [F0.e] Each plant on the grid has a distinct type (e.g. one of 3 species) and a growth level (e.g. “level 1”, “level 2”, “level 3”).
+
+We have 3 different types of plants that each have different spatial rules for growth. The will start at level 1 when planted and can grow up to level 3, at which point they can be harvested and sold to progress toward the player objective.
+
+6. [F0.f] Simple spatial rules govern plant growth based on sun, water, and nearby plants (growth is unlocked by satisfying conditions).
+
+Plants can grow if the grid cell they were planted on has met or exceeded the sun and water threshold, and if their spatial conditions have also been met. One type of plant will grow if no other plants are adjacent to it, another will grow if exactly 1 other plant is adjacent to it, and the third will grow if 2 or more plants are adjacent to it.
+
+8. [F0.g] A play scenario is completed when some condition is satisfied (e.g. at least X plants at growth level Y or above).
+
+Once the player has sold 5 plants, which require the player to grow plants to level 3 and then harvest them, they will have completed the play scenario.
+
+## Reflection
+
+Throughout completing the F0 requirements, our team members' roles stayed pretty much the same as we initially defined them, though we would ocassionally shuffle role tasks around. For our tools and materials, though we stuck with Phaser as our framework and JavaScript as our programming language, we switched from including the Phaser library file directly in our project folder to installing it with npm, as importing Phaser once installed with npm worked better with our ES Module code organization. We also switched from using the Live Server vscode extension to Vite for testing, as the Live Server extension wasn't working as intended.
