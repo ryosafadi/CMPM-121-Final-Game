@@ -84,7 +84,6 @@ export function deserializeGameState(gameState, grid, inventory, player, scene) 
     });
 
     // Update the game visuals
-    grid.drawGrid(scene);
     scene.drawPlants(grid);
     scene.updateInventoryDisplay();
     scene.updateTurnDisplay();
