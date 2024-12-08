@@ -76,6 +76,10 @@ export function deserializeGameState(gameState, grid, inventory, player, scene) 
     player.col = state.player.col;
     scene.turn = state.turn;
 
+    grid.plants.forEach(({ row, col, plant }) => {
+        grid.removePlant(row, col, plant);
+    });
+    
     // Restore plants
     grid.plants = state.plants.map(({ row, col, type, level }) => {
         const plant = new Plant(type, level);
