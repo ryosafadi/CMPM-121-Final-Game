@@ -2,22 +2,23 @@ import Phaser from 'phaser';
 import Grid from '../classes/Grid.js';
 import Plant from '../classes/Plant.js';
 import Player from '../classes/Player.js';
-import { saveGame, loadGame, autoSaveGame, loadAutoSave, checkAutoSave } from '../classes/SaveState.js';
+import { saveGame, loadGame, autoSaveGame, loadAutoSave, checkAutoSave, deserializeGameState } from '../classes/SaveState.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super("GameScene");
+    }
+
+    init() {
+        this.ROWS = 3;
+        this.COLS = 3;
+        this.states = [];
         this.inventory = [];
         this.selectedPlant = null;
         this.plantSelectionMenu = null; 
         this.drawnPlants = {};
         this.plantsSold = 0;
         this.winCondition = 5; // Number of plants to sell to win
-    }
-
-    init() {
-        this.ROWS = 3;
-        this.COLS = 3;
     }
 
     create() {
@@ -33,6 +34,7 @@ export default class GameScene extends Phaser.Scene {
 
         this.player.on('player-moved', () => {
             this.displayCellInfo(this.player.row, this.player.col);
+            this.grid.emit('gamestate-changed');
         });
 
         // Add interactivity to the grid for placing plants
@@ -44,6 +46,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Create UI elements
         this.createSaveLoadButtons();
+        this.createUndoButton()
         this.createTurnDisplay();
         this.createAdvanceTurnButton();
         this.createInventoryDisplay();
@@ -58,15 +61,12 @@ export default class GameScene extends Phaser.Scene {
             }
         }
 
-        // Set up auto-save interval
-        this.time.addEvent({
-            delay: 30000, // Auto-save every 30 seconds
-            callback: () => {
-                autoSaveGame(this.grid, this.inventory, this.player, this.turn);
-            },
-            callbackScope: this,
-            loop: true
+        this.grid.on('gamestate-changed', () => {
+            autoSaveGame(this.grid, this.inventory, this.player, this.turn, this.states);
+            console.log('Game state changed');
         });
+
+        autoSaveGame(this.grid, this.inventory, this.player, this.turn, this.states);
     }
 
     createSaveLoadButtons() {
@@ -91,8 +91,27 @@ export default class GameScene extends Phaser.Scene {
         });
     }
 
+    createUndoButton() {
+        const undoButton = this.add.text(10, 70, 'Undo', {
+            fontSize: '16px',
+            fill: '#ffffff',
+            backgroundColor: '#000'
+        }).setInteractive();
+
+        undoButton.on('pointerdown', () => {
+            if (this.states.length > 1) {
+                this.states.pop();
+                const gameState = this.states[this.states.length - 1];
+                deserializeGameState(gameState, this.grid, this.inventory, this.player, this);
+                this.drawPlants(this.grid);
+            } else {
+                alert('No more states to undo.');
+            }
+        });
+    }
+
     createTurnDisplay() {
-        this.turnText = this.add.text(10, 70, `Turn: ${this.turn}`, {
+        this.turnText = this.add.text(10, 100, `Turn: ${this.turn}`, {
             fontSize: '16px',
             fill: '#ffffff'
         });
@@ -103,7 +122,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createAdvanceTurnButton() {
-        const button = this.add.text(10, 100, 'Next Turn', {
+        const button = this.add.text(10, 130, 'Next Turn', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -123,7 +142,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createSellButton() {
-        const button = this.add.text(10, 130, 'Sell Plant', {
+        const button = this.add.text(10, 160, 'Sell Plant', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -152,7 +171,7 @@ export default class GameScene extends Phaser.Scene {
     createRandomSeedButtons() {
         const plantTypes = ['🌱', '🌿', '🌳'];
         plantTypes.forEach((type, index) => {
-            const button = this.add.text(10, 160 + index * 30, `Add ${type} Seed`, {
+            const button = this.add.text(10, 190 + index * 30, `Add ${type} Seed`, {
                 fontSize: '16px',
                 fill: '#ffffff',
                 backgroundColor: '#000'
@@ -181,7 +200,7 @@ export default class GameScene extends Phaser.Scene {
     displayCellInfo(row, col) {
         const cell = this.grid.getCell(row, col);
         if (!this.cellInfoText) {
-            this.cellInfoText = this.add.text(10, 250, '', { fontSize: '16px', fill: '#ffffff' }); // Adjusted position
+            this.cellInfoText = this.add.text(10, 280, '', { fontSize: '16px', fill: '#ffffff' }); // Adjusted position
         }
 
         let cellInfo = `Cell (${row}, ${col}):\n☀️ Sunlight: ${cell.sunlight}\n💧 Water: ${cell.water}`;
@@ -220,6 +239,8 @@ export default class GameScene extends Phaser.Scene {
                 }
             }
         }
+
+        this.grid.emit('gamestate-changed');
     }
 
     handleGridClick(grid, x, y) {
@@ -267,6 +288,7 @@ export default class GameScene extends Phaser.Scene {
                 this.displayCellInfo(row, col); // Update cell info display
             }
 
+            this.grid.emit('gamestate-changed');
             alert(`Picked up: ${plant.type} (Level ${plant.level})`);
         }
     }
@@ -332,6 +354,7 @@ export default class GameScene extends Phaser.Scene {
                         this.plantSelectionMenu.destroy(); // Destroy the menu after placing the plant
                         this.plantSelectionMenu = null; // Reset the menu reference
                         this.displayCellInfo(this.player.row, this.player.col); // Display cell info after placing the plant
+                        this.grid.emit('gamestate-changed');
                     }
                     event.stopPropagation();
                 });

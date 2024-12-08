@@ -46,9 +46,10 @@ export function loadGame(grid, inventory, player, scene) {
     }
 }
 
-export function autoSaveGame(grid, inventory, player, turn) {
+export function autoSaveGame(grid, inventory, player, turn, states) {
     clearAutoSave();
     const gameState = serializeGameState(grid, inventory, player, turn);
+    states.push(gameState);
     localStorage.setItem('auto_save', gameState);
 }
 
