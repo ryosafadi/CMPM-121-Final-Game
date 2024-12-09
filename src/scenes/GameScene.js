@@ -70,6 +70,60 @@ export default class GameScene extends Phaser.Scene {
         });
 
         autoSaveGame(this.grid, this.inventory, this.player, this.turn, this.states);
+
+        // Add arrow key buttons for mobile
+        this.createArrowKeyButtons();
+    }
+
+    createArrowKeyButtons() {
+        const buttonSize = 50;
+        const buttonPadding = 10;
+        const screenWidth = this.scale.width;
+        const screenHeight = this.scale.height;
+
+        const upButton = this.add.text(screenWidth - buttonSize - buttonPadding, screenHeight - buttonSize * 3 - buttonPadding * 3, '▲', {
+            fontSize: `${buttonSize}px`,
+            fill: '#ffffff',
+            backgroundColor: '#000000',
+            padding: { left: 10, right: 10, top: 5, bottom: 5 },
+        }).setInteractive();
+
+        const downButton = this.add.text(screenWidth - buttonSize - buttonPadding, screenHeight - buttonSize - buttonPadding, '▼', {
+            fontSize: `${buttonSize}px`,
+            fill: '#ffffff',
+            backgroundColor: '#000000',
+            padding: { left: 10, right: 10, top: 5, bottom: 5 },
+        }).setInteractive();
+
+        const leftButton = this.add.text(screenWidth - buttonSize * 2 - buttonPadding * 2, screenHeight - buttonSize * 2 - buttonPadding * 2, '◀', {
+            fontSize: `${buttonSize}px`,
+            fill: '#ffffff',
+            backgroundColor: '#000000',
+            padding: { left: 10, right: 10, top: 5, bottom: 5 },
+        }).setInteractive();
+
+        const rightButton = this.add.text(screenWidth - buttonPadding, screenHeight - buttonSize * 2 - buttonPadding * 2, '▶', {
+            fontSize: `${buttonSize}px`,
+            fill: '#ffffff',
+            backgroundColor: '#000000',
+            padding: { left: 10, right: 10, top: 5, bottom: 5 },
+        }).setInteractive();
+
+        upButton.on('pointerdown', () => {
+            this.player.moveTo(this.player.row - 1, this.player.col);
+        });
+
+        downButton.on('pointerdown', () => {
+            this.player.moveTo(this.player.row + 1, this.player.col);
+        });
+
+        leftButton.on('pointerdown', () => {
+            this.player.moveTo(this.player.row, this.player.col - 1);
+        });
+
+        rightButton.on('pointerdown', () => {
+            this.player.moveTo(this.player.row, this.player.col + 1);
+        });
     }
 
     createSaveLoadButtons() {
