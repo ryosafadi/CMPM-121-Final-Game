@@ -6,6 +6,7 @@ import LoadScene from "./scenes/LoadScene.js";
 import MenuScene from "./scenes/MenuScene.js";
 import CreditsScene from "./scenes/CreditsScene.js";
 import GameScene from "./scenes/GameScene.js";
+import LanguageSelectionScene from "./scenes/LanguageSelectionScene.js";
 
 let config = {
     parent: 'phaser-game',
@@ -15,7 +16,7 @@ let config = {
     scale: {
         mode: Phaser.Scale.RESIZE,
     },
-    scene: [LoadScene, MenuScene, CreditsScene, GameScene]
+    scene: [LoadScene, LanguageSelectionScene, MenuScene, CreditsScene, GameScene]
 }
 
 const game = new Phaser.Game(config);

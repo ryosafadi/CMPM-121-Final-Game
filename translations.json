@@ -1,0 +1,53 @@
+{
+  "en": {
+    "title": "Space Farm",
+    "start": "Start",
+    "credits": "Credits",
+    "back": "Back",
+    "next_turn": "Next Turn",
+    "sell_plant": "Sell Plant",
+    "save_game": "Save Game",
+    "load_game": "Load Game",
+    "redo": "Redo",
+    "undo": "Undo",
+    "you_win": "You win!",
+    "no_plants_inventory": "No plants in inventory",
+    "picked_up": "Picked up: ",
+    "sold": "Sold: ",
+    "only_level_3": "Only level 3 plants can be sold."
+  },
+  "zh": {
+    "title": "太空农场",
+    "start": "开始",
+    "credits": "鸣谢",
+    "back": "返回",
+    "next_turn": "下一回合",
+    "sell_plant": "卖植物",
+    "save_game": "保存游戏",
+    "load_game": "加载游戏",
+    "redo": "重做",
+    "undo": "撤销",
+    "you_win": "你赢了!",
+    "no_plants_inventory": "库存中没有植物",
+    "picked_up": "拾起: ",
+    "sold": "卖出: ",
+    "only_level_3": "只有3级植物可以出售。"
+  },
+  "ar": {
+    "title": "مزرعة الفضاء",
+    "start": "ابدأ",
+    "credits": "الشكر",
+    "back": "عودة",
+    "next_turn": "الدور التالي",
+    "sell_plant": "بيع النبات",
+    "save_game": "حفظ اللعبة",
+    "load_game": "تحميل اللعبة",
+    "redo": "إعادة",
+    "undo": "تراجع",
+    "you_win": "لقد فزت!",
+    "no_plants_inventory": "لا توجد نباتات في المخزون",
+    "picked_up": "التقط: ",
+    "sold": "تم البيع: ",
+    "only_level_3": "يمكن بيع النباتات من المستوى 3 فقط."
+  }
+}
