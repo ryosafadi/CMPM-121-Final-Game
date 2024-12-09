@@ -96,6 +96,10 @@ Plants can grow if the grid cell they were planted on has met or exceeded the su
 
 Once the player has sold 5 plants, which require the player to grow plants to level 3 and then harvest them, they will have completed the play scenario.
 
+## Reflection
+
+Throughout completing the F0 requirements, our team members' roles largely stayed consistent with our initial plan. For our tools and materials, though we stuck with Phaser as our framework but we converted JavaScript to Typescript for stability, maintainability, and scalability of our project.
+
 ## How we satisfied the F1 software requirements
 
 1. [F1.a] The important state of your game's grid must be backed by a single contiguous byte array in AoS or SoA format. If your game stores the grid state in multiple format, the byte array format must be the primary format (i.e. other formats are decoded from it as needed).
