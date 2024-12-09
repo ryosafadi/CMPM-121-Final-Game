@@ -13,6 +13,7 @@ export default class GameScene extends Phaser.Scene {
         this.ROWS = 3;
         this.COLS = 3;
         this.states = [];
+        this.redoStates = [];
         this.inventory = [];
         this.selectedPlant = null;
         this.plantSelectionMenu = null; 
@@ -46,7 +47,8 @@ export default class GameScene extends Phaser.Scene {
 
         // Create UI elements
         this.createSaveLoadButtons();
-        this.createUndoButton()
+        this.createUndoButton();
+        this.createRedoButton();
         this.createTurnDisplay();
         this.createAdvanceTurnButton();
         this.createInventoryDisplay();
@@ -62,6 +64,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         this.grid.on('gamestate-changed', () => {
+            this.redoStates = [];
             autoSaveGame(this.grid, this.inventory, this.player, this.turn, this.states);
             console.log('Game state changed');
         });
@@ -100,18 +103,35 @@ export default class GameScene extends Phaser.Scene {
 
         undoButton.on('pointerdown', () => {
             if (this.states.length > 1) {
-                this.states.pop();
+                this.redoStates.push(this.states.pop());
                 const gameState = this.states[this.states.length - 1];
                 deserializeGameState(gameState, this.grid, this.inventory, this.player, this);
-                this.drawPlants(this.grid);
             } else {
                 alert('No more states to undo.');
             }
         });
     }
 
+    createRedoButton() {
+        const redoButton = this.add.text(10, 100, 'Redo', {
+            fontSize: '16px',
+            fill: '#ffffff',
+            backgroundColor: '#000'
+        }).setInteractive();
+
+        redoButton.on('pointerdown', () => {
+            if (this.redoStates.length > 0) {
+                const gameState = this.redoStates.pop();
+                this.states.push(gameState);
+                deserializeGameState(gameState, this.grid, this.inventory, this.player, this);
+            } else {
+                alert('No more states to redo.');
+            }
+        });
+    }
+
     createTurnDisplay() {
-        this.turnText = this.add.text(10, 100, `Turn: ${this.turn}`, {
+        this.turnText = this.add.text(10, 130, `Turn: ${this.turn}`, {
             fontSize: '16px',
             fill: '#ffffff'
         });
@@ -122,7 +142,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createAdvanceTurnButton() {
-        const button = this.add.text(10, 130, 'Next Turn', {
+        const button = this.add.text(10, 160, 'Next Turn', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -142,7 +162,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createSellButton() {
-        const button = this.add.text(10, 160, 'Sell Plant', {
+        const button = this.add.text(10, 190, 'Sell Plant', {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -171,7 +191,7 @@ export default class GameScene extends Phaser.Scene {
     createRandomSeedButtons() {
         const plantTypes = ['🌱', '🌿', '🌳'];
         plantTypes.forEach((type, index) => {
-            const button = this.add.text(10, 190 + index * 30, `Add ${type} Seed`, {
+            const button = this.add.text(10, 220 + index * 30, `Add ${type} Seed`, {
                 fontSize: '16px',
                 fill: '#ffffff',
                 backgroundColor: '#000'
@@ -200,7 +220,7 @@ export default class GameScene extends Phaser.Scene {
     displayCellInfo(row, col) {
         const cell = this.grid.getCell(row, col);
         if (!this.cellInfoText) {
-            this.cellInfoText = this.add.text(10, 280, '', { fontSize: '16px', fill: '#ffffff' }); // Adjusted position
+            this.cellInfoText = this.add.text(10, 310, '', { fontSize: '16px', fill: '#ffffff' }); // Adjusted position
         }
 
         let cellInfo = `Cell (${row}, ${col}):\n☀️ Sunlight: ${cell.sunlight}\n💧 Water: ${cell.water}`;
