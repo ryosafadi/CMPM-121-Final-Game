@@ -19,7 +19,9 @@
     "cell": "Cell",
     "sunlight": "Sunlight",
     "water": "Water",
-    "level": "Level"
+    "level": "Level",
+    "turn": "Turn",
+    "continue_game": "Do you want to continue where you left off?"
   },
   "zh": {
     "title": "太空农场",
@@ -41,7 +43,9 @@
     "picked_up": "拾起: ",
     "sold": "卖出: ",
     "only_level_3": "只有3级植物可以出售。",
-    "language": "语言"
+    "language": "语言",
+    "turn": "回合",
+    "continue_game": "你想继续你离开的地方吗？"
   },
   "ar": {
     "title": "مزرعة الفضاء",
@@ -63,6 +67,8 @@
     "picked_up": "التقط: ",
     "sold": "تم البيع: ",
     "only_level_3": "يمكن بيع النباتات من المستوى 3 فقط.",
-    "language": "اللغة"
+    "language": "اللغة",
+    "turn": "دور",
+    "continue_game": "هل تريد المتابعة من حيث توقفت؟"
   }
 }

@@ -59,7 +59,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Check for auto-save on game launch
         if (checkAutoSave()) {
-            if (confirm("Do you want to continue where you left off?")) {
+            if (confirm(getTranslation('continue_game'))) {
                 loadAutoSave(this.grid, this.inventory, this.player, this);
             }
         }
@@ -197,13 +197,13 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createAdvanceTurnButton() {
-        const button = this.add.text(10, 160, getTranslation('next_turn'), {
+        const advanceTurnButton = this.add.text(10, 160, getTranslation('next_turn'), {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
         }).setInteractive();
 
-        button.on('pointerdown', () => {
+        advanceTurnButton.on('pointerdown', () => {
             this.advanceTurn();
         });
     }
@@ -334,7 +334,7 @@ export default class GameScene extends Phaser.Scene {
                     // Place plant from inventory
                     this.showPlantSelectionMenu(grid);
                 } else {
-                    alert('No plants in inventory');
+                    alert(getTranslation('no_plants_inventory'));
                 }
             }
         }
@@ -364,7 +364,7 @@ export default class GameScene extends Phaser.Scene {
             }
 
             this.grid.emit('gamestate-changed');
-            alert(`Picked up: ${plant.type} (Level ${plant.level})`);
+            alert(`${getTranslation('picked_up')}: ${plant.type} (${getTranslation('level')} ${plant.level})`);
         }
     }
 
@@ -438,7 +438,7 @@ export default class GameScene extends Phaser.Scene {
                 y += 30;
             }
         } else {
-            alert('No plants in inventory');
+            alert(getTranslation('no_plants_inventory'));
         }
     }
 }
