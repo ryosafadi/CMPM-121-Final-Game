@@ -246,7 +246,7 @@ export default class GameScene extends Phaser.Scene {
     createRandomSeedButtons() {
         const plantTypes = ['🌱', '🌿', '🌳'];
         plantTypes.forEach((type, index) => {
-            const button = this.add.text(10, 220 + index * 30, `Add ${type} Seed`, {
+            const button = this.add.text(10, 220 + index * 30, `+ ${type}`, {
                 fontSize: '16px',
                 fill: '#ffffff',
                 backgroundColor: '#000'
@@ -264,7 +264,7 @@ export default class GameScene extends Phaser.Scene {
         const plant = new Plant(type, 1);
         this.inventory.push(plant);
         this.updateInventoryDisplay();
-        alert(`Added ${type} seed to inventory`);
+        alert(`+ ${type}`);
     }
 
     updateInventoryDisplay() {
