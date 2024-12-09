@@ -3,12 +3,15 @@ const CACHE_NAME = 'space-farm-cache-v1';
 const urlsToCache = [
   '/',
   '/index.html',
+  '/translations.json',
   '/src/main.js',
   '/src/scenes/MenuScene.js',
   '/src/scenes/GameScene.js',
   '/src/scenes/CreditsScene.js',
+  '/src/scenes/LanguageSelectionScene.js',
   '/src/classes/Player.js',
   '/src/classes/SaveState.js',
+  '/src/classes/translations.js',
   // Add other game assets here
 ];
 

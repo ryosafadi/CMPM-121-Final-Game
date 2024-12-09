@@ -3,6 +3,7 @@ import Grid from '../classes/Grid.js';
 import Plant from '../classes/Plant.js';
 import Player from '../classes/Player.js';
 import { saveGame, loadGame, autoSaveGame, loadAutoSave, checkAutoSave, deserializeGameState } from '../classes/SaveState.js';
+import { getTranslation } from '../classes/translations';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -50,9 +51,9 @@ export default class GameScene extends Phaser.Scene {
         this.createUndoButton();
         this.createRedoButton();
         this.createTurnDisplay();
-        this.createAdvanceTurnButton();
-        this.createInventoryDisplay();
         this.createSellButton();
+        this.createInventoryDisplay();
+        this.createAdvanceTurnButton();
         this.createRandomSeedButtons();
         this.displayCellInfo(this.player.row, this.player.col);
 
@@ -127,7 +128,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createSaveLoadButtons() {
-        const saveButton = this.add.text(10, 10, 'Save Game', {
+        const saveButton = this.add.text(10, 10, getTranslation('save_game'), {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -137,7 +138,7 @@ export default class GameScene extends Phaser.Scene {
             saveGame(this.grid, this.inventory, this.player, this.turn);
         });
 
-        const loadButton = this.add.text(10, 40, 'Load Game', {
+        const loadButton = this.add.text(10, 40, getTranslation('load_game'), {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -149,7 +150,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createUndoButton() {
-        const undoButton = this.add.text(10, 70, 'Undo', {
+        const undoButton = this.add.text(10, 70, getTranslation('undo'), {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -161,13 +162,13 @@ export default class GameScene extends Phaser.Scene {
                 const gameState = this.states[this.states.length - 1];
                 deserializeGameState(gameState, this.grid, this.inventory, this.player, this);
             } else {
-                alert('No more states to undo.');
+                alert(getTranslation('no_more_states_undo'));
             }
         });
     }
 
     createRedoButton() {
-        const redoButton = this.add.text(10, 100, 'Redo', {
+        const redoButton = this.add.text(10, 100, getTranslation('redo'), {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -179,24 +180,24 @@ export default class GameScene extends Phaser.Scene {
                 this.states.push(gameState);
                 deserializeGameState(gameState, this.grid, this.inventory, this.player, this);
             } else {
-                alert('No more states to redo.');
+                alert(getTranslation('no_more_states_redo'));
             }
         });
     }
 
     createTurnDisplay() {
-        this.turnText = this.add.text(10, 130, `Turn: ${this.turn}`, {
+        this.turnText = this.add.text(10, 130, `${getTranslation('turn')}: ${this.turn}`, {
             fontSize: '16px',
             fill: '#ffffff'
         });
     }
 
     updateTurnDisplay() {
-        this.turnText.setText(`Turn: ${this.turn}`);
+        this.turnText.setText(`${getTranslation('turn')}: ${this.turn}`);
     }
 
     createAdvanceTurnButton() {
-        const button = this.add.text(10, 160, 'Next Turn', {
+        const button = this.add.text(10, 160, getTranslation('next_turn'), {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -216,7 +217,7 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createSellButton() {
-        const button = this.add.text(10, 190, 'Sell Plant', {
+        const button = this.add.text(10, 190, getTranslation('sell_plant'), {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#000'
@@ -226,15 +227,15 @@ export default class GameScene extends Phaser.Scene {
             const selectedPlant = this.selectedPlant;
             if (selectedPlant && selectedPlant.level === 3) {
                 this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
-                alert(`Sold: ${selectedPlant.type} (Level ${selectedPlant.level})`);
+                alert(`${getTranslation('sold')}: ${selectedPlant.type} (Level ${selectedPlant.level})`);
                 this.selectedPlant = null;
                 this.plantsSold += 1;
                 this.updateInventoryDisplay();
                 if (this.plantsSold >= this.winCondition) {
-                    alert('You win!');
+                    alert(getTranslation('you_win'));
                 }
             } else {
-                alert('Only level 3 plants can be sold.');
+                alert(getTranslation('only_level_3'));
             }
             event.stopPropagation();
         });
@@ -277,11 +278,11 @@ export default class GameScene extends Phaser.Scene {
             this.cellInfoText = this.add.text(10, 310, '', { fontSize: '16px', fill: '#ffffff' }); // Adjusted position
         }
 
-        let cellInfo = `Cell (${row}, ${col}):\n☀️ Sunlight: ${cell.sunlight}\n💧 Water: ${cell.water}`;
+        let cellInfo = `${getTranslation('cell')} (${row}, ${col}):\n${getTranslation('sunlight')}: ${cell.sunlight}\n${getTranslation('water')}: ${cell.water}`;
 
         if (cell.plants && cell.plants.length > 0) {
             const plant = cell.plants[cell.plants.length - 1]; // Get the newest plant
-            cellInfo += `\n${plant.type} Level: ${plant.level}`;
+            cellInfo += `\n${plant.type} ${getTranslation('level')}: ${plant.level}`;
         }
 
         this.cellInfoText.setText(cellInfo);

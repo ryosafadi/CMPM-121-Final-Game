@@ -44,7 +44,7 @@ export default class MenuScene extends Phaser.Scene {
     });
 
     // Add language switch button
-    const languageButton = this.add.text(width / 2, height / 1.4, getTranslation('back'), {
+    const languageButton = this.add.text(width / 2, height / 1.4, getTranslation('language'), {
       font: '24px Arial',
       fill: '#ffffff',
       backgroundColor: '#000000',

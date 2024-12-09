@@ -16,7 +16,7 @@ let config = {
     scale: {
         mode: Phaser.Scale.RESIZE,
     },
-    scene: [LoadScene, LanguageSelectionScene, MenuScene, CreditsScene, GameScene]
+    scene: [LoadScene, MenuScene, LanguageSelectionScene, CreditsScene, GameScene]
 }
 
 const game = new Phaser.Game(config);

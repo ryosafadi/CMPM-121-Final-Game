@@ -14,7 +14,8 @@
     "no_plants_inventory": "No plants in inventory",
     "picked_up": "Picked up: ",
     "sold": "Sold: ",
-    "only_level_3": "Only level 3 plants can be sold."
+    "only_level_3": "Only level 3 plants can be sold.",
+    "language": "Language"
   },
   "zh": {
     "title": "太空农场",
@@ -31,7 +32,8 @@
     "no_plants_inventory": "库存中没有植物",
     "picked_up": "拾起: ",
     "sold": "卖出: ",
-    "only_level_3": "只有3级植物可以出售。"
+    "only_level_3": "只有3级植物可以出售。",
+    "language": "语言"
   },
   "ar": {
     "title": "مزرعة الفضاء",
@@ -48,6 +50,7 @@
     "no_plants_inventory": "لا توجد نباتات في المخزون",
     "picked_up": "التقط: ",
     "sold": "تم البيع: ",
-    "only_level_3": "يمكن بيع النباتات من المستوى 3 فقط."
+    "only_level_3": "يمكن بيع النباتات من المستوى 3 فقط.",
+    "language": "اللغة"
   }
 }

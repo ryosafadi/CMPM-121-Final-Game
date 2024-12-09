@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { getTranslation } from '../classes/translations';
 
 export default class CreditsScene extends Phaser.Scene {
   constructor() {
@@ -9,7 +10,7 @@ export default class CreditsScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     // Add credits title
-    this.add.text(width / 2, height / 4, 'Credits', {
+    this.add.text(width / 2, height / 4, `${getTranslation('credits')}`, {
       font: '32px Arial',
       fill: '#ffffff',
     }).setOrigin(0.5);
@@ -39,7 +40,7 @@ export default class CreditsScene extends Phaser.Scene {
     ).setOrigin(0.5);
 
     // Add back to menu button
-    const backButton = this.add.text(width / 2, (height * 3) / 4, 'Back', {
+    const backButton = this.add.text(width / 2, (height * 3) / 4, getTranslation('back'), {
       font: '24px Arial',
       fill: '#ffffff',
       backgroundColor: '#000000',

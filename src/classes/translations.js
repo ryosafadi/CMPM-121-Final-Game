@@ -1,4 +1,4 @@
-import translations from './translations.json';
+import translations from '/translations.json';
 
 export function getTranslation(key) {
   const lang = localStorage.getItem('language') || 'en';
