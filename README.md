@@ -96,10 +96,6 @@ Plants can grow if the grid cell they were planted on has met or exceeded the su
 
 Once the player has sold 5 plants, which require the player to grow plants to level 3 and then harvest them, they will have completed the play scenario.
 
-## Reflection
-
-Throughout completing the F0 requirements, our team members' roles largely stayed consistent with our initial plan. For our tools and materials, though we stuck with Phaser as our framework but we converted JavaScript to Typescript for stability, maintainability, and scalability of our project.
-
 ## How we satisfied the F1 software requirements
 
 1. [F1.a] The important state of your game's grid must be backed by a single contiguous byte array in AoS or SoA format. If your game stores the grid state in multiple format, the byte array format must be the primary format (i.e. other formats are decoded from it as needed).
@@ -121,3 +117,29 @@ The undo and redo systems store game states in stacks. The createUndoButton and 
 ## Reflection
 
 We shed a lot of gameplay and art aspects of the design for time reasons and focused more on completing the requirements and the basic gameplay experience. We basically kept the original role and tool use. Initially, we viewed Undo/Redo system as a secondary feature, but it became a core mechanic that encourages experimentation. This required us to think more critically about how players interact with game states and how to visually convey the ability to undo/redo. Also, we tried to add more colorful sprites to give the player positive feedback visually. 
+
+#
+
+## Devlog Entry - [12/09/2024]
+
+## How we satisfied the F3 software requirements
+
+## F0 + F1 + F2
+
+No major changes were made.
+
+## Internationalization
+
+We have added a translations.json file that stores translations for the text in our game in 3 different languages. In our main project files, we reference this data based on the language that the player has selected in the language menu. If we wanted to add support for another language or add more translations to an existing language, we would just have to modify the text in the json file and update the language menu if adding a new language.
+
+## Localization
+
+Our game supports English, Chinese, and Arabic. For the translations, we first compiled all the english text in our game and added it to a JSON object. We then ran that object through chatGPT to translate it to both Chinese and Arabic while maintaining the object structure. The player selects the language they want to use from the game's main menu, which has a language tab.
+
+## Mobile Installation
+
+For installing the game on a mobile device, Mitchell already had prior experience adding mobile download support to another app, so he transferred that knowledge to this project.
+
+## Reflection
+
+As this was the final stretch for the project, we didn't make any changes to our team roles or our toolset, as there wasn't a need or a major benefit in doing so.
