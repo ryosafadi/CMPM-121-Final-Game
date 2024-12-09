@@ -5,7 +5,7 @@ export default class MenuScene extends Phaser.Scene {
     super('MenuScene');
   }
 
-  create() {
+  create(): void {
     const { width, height } = this.scale;
 
     // Add game title

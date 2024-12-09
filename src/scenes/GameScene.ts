@@ -1,10 +1,27 @@
 import Phaser from 'phaser';
-import Grid from '../classes/Grid.ts';
-import Plant from '../classes/Plant.ts';
-import Player from '../classes/Player.ts';
-import { saveGame, loadGame, autoSaveGame, loadAutoSave, checkAutoSave, deserializeGameState } from '../classes/SaveState.ts';
+import Grid from '../classes/Grid';
+import Plant from '../classes/Plant';
+import Player from '../classes/Player';
+import { saveGame, loadGame, autoSaveGame, loadAutoSave, checkAutoSave, deserializeGameState } from '../classes/SaveState';
 
 export default class GameScene extends Phaser.Scene {
+    private ROWS: number;
+    private COLS: number;
+    private states: any[];
+    private redoStates: any[];
+    private inventory: Plant[];
+    private selectedPlant: Plant | null;
+    private plantSelectionMenu: Phaser.GameObjects.Container | null;
+    private drawnPlants: { [key: number]: { [key: number]: Phaser.GameObjects.Text } };
+    private plantsSold: number;
+    private winCondition: number;
+    private grid!: Grid;
+    private player!: Player;
+    private turn: number;
+    private turnText!: Phaser.GameObjects.Text;
+    private inventoryText!: Phaser.GameObjects.Text;
+    private cellInfoText!: Phaser.GameObjects.Text;
+
     constructor() {
         super("GameScene");
     }
@@ -39,7 +56,7 @@ export default class GameScene extends Phaser.Scene {
         });
 
         // Add interactivity to the grid for placing plants
-        this.input.on('pointerdown', (pointer) => {
+        this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             const x = pointer.x;
             const y = pointer.y;
             this.handleGridClick(this.grid, x, y);
@@ -168,7 +185,7 @@ export default class GameScene extends Phaser.Scene {
             backgroundColor: '#000'
         }).setInteractive();
 
-        button.on('pointerdown', (event) => {
+        button.on('pointerdown', (event: Phaser.Input.Pointer) => {
             const selectedPlant = this.selectedPlant;
             if (selectedPlant && selectedPlant.level === 3) {
                 this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
@@ -205,7 +222,7 @@ export default class GameScene extends Phaser.Scene {
         });
     }
 
-    addRandomSeed(type) {
+    addRandomSeed(type: string) {
         const plant = new Plant(type, 1);
         this.inventory.push(plant);
         this.updateInventoryDisplay();
@@ -217,7 +234,7 @@ export default class GameScene extends Phaser.Scene {
         this.inventoryText.setText(`Inventory:\n${inventoryText}`);
     }
 
-    displayCellInfo(row, col) {
+    displayCellInfo(row: number, col: number) {
         const cell = this.grid.getCell(row, col);
         if (!this.cellInfoText) {
             this.cellInfoText = this.add.text(10, 310, '', { fontSize: '16px', fill: '#ffffff' }); // Adjusted position
@@ -263,7 +280,7 @@ export default class GameScene extends Phaser.Scene {
         this.grid.emit('gamestate-changed');
     }
 
-    handleGridClick(grid, x, y) {
+    handleGridClick(grid: Grid, x: number, y: number) {
         const col = Math.floor((x - grid.offsetX) / grid.cellSize);
         const row = Math.floor((y - grid.offsetY) / grid.cellSize);
 
@@ -285,9 +302,9 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    pickUpPlant(plants, row, col) {
+    pickUpPlant(plants: Plant[], row: number, col: number) {
         if (plants.length > 0) {
-            const plant = plants.pop();
+            const plant = plants.pop()!;
             this.inventory.push(new Plant(plant.type, plant.level));
             this.selectedPlant = plant;
             this.updateInventoryDisplay();
@@ -313,10 +330,10 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
-    drawPlants(grid) {
+    drawPlants(grid: Grid) {
         // Clear previously drawn plants
         this.children.list.forEach(child => {
-            if (child.plantType) {
+            if ((child as any).plantType) {
                 child.destroy();
             }
         });
@@ -333,13 +350,13 @@ export default class GameScene extends Phaser.Scene {
             text.setDepth(1); // Ensure the text is rendered on top
 
             // Tag the text object with plantType for easy identification
-            text.plantType = plant.type;
+            (text as any).plantType = plant.type;
             this.drawnPlants[row] = this.drawnPlants[row] || {};
             this.drawnPlants[row][col] = text;
         });
     }
 
-    showPlantSelectionMenu(grid) {
+    showPlantSelectionMenu(grid: Grid) {
         if (this.plantSelectionMenu) {
             this.plantSelectionMenu.destroy(); // Destroy existing menu
         }
@@ -348,7 +365,7 @@ export default class GameScene extends Phaser.Scene {
             const plantCounts = this.inventory.reduce((counts, plant) => {
                 counts[plant.type] = (counts[plant.type] || 0) + 1;
                 return counts;
-            }, {});
+            }, {} as { [key: string]: number });
 
             // Create a menu with buttons for each plant type
             this.plantSelectionMenu = this.add.container(grid.offsetX + this.player.col * grid.cellSize, grid.offsetY + this.player.row * grid.cellSize);
@@ -362,7 +379,7 @@ export default class GameScene extends Phaser.Scene {
                     padding: { left: 10, right: 10, top: 5, bottom: 5 }
                 }).setInteractive();
 
-                button.on('pointerdown', (pointer, localX, localY, event) => {
+                button.on('pointerdown', (pointer: Phaser.Input.Pointer, localX: number, localY: number, event: Phaser.Input.PointerEvent) => {
                     const selectedPlant = this.inventory.find(plant => plant.type === type);
                     if (selectedPlant) {
                         const newPlant = new Plant(selectedPlant.type, selectedPlant.level);
@@ -371,7 +388,7 @@ export default class GameScene extends Phaser.Scene {
                         this.selectedPlant = null;
                         this.drawPlants(grid);
                         this.updateInventoryDisplay();
-                        this.plantSelectionMenu.destroy(); // Destroy the menu after placing the plant
+                        this.plantSelectionMenu!.destroy(); // Destroy the menu after placing the plant
                         this.plantSelectionMenu = null; // Reset the menu reference
                         this.displayCellInfo(this.player.row, this.player.col); // Display cell info after placing the plant
                         this.grid.emit('gamestate-changed');

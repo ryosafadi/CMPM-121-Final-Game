@@ -1,13 +1,11 @@
-"use strict"
+import Phaser from 'phaser';
 
-import Phaser from "phaser";
+import LoadScene from './scenes/LoadScene';
+import MenuScene from './scenes/MenuScene';
+import CreditsScene from './scenes/CreditsScene';
+import GameScene from './scenes/GameScene';
 
-import LoadScene from "./scenes/LoadScene.js";
-import MenuScene from "./scenes/MenuScene.js";
-import CreditsScene from "./scenes/CreditsScene.ts";
-import GameScene from "./scenes/GameScene.js";
-
-let config = {
+const config: Phaser.Types.Core.GameConfig = {
     parent: 'phaser-game',
     type: Phaser.AUTO,
     width: window.innerWidth,
@@ -16,6 +14,6 @@ let config = {
         mode: Phaser.Scale.RESIZE,
     },
     scene: [LoadScene, MenuScene, CreditsScene, GameScene]
-}
+};
 
 const game = new Phaser.Game(config);
