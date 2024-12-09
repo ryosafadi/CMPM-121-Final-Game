@@ -5,7 +5,7 @@ export default class CreditsScene extends Phaser.Scene {
     super('CreditsScene');
   }
 
-  create() {
+  create(): void {
     const { width, height } = this.scale;
 
     // Add credits title

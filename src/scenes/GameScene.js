@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
-import Grid from '../classes/Grid.js';
-import Plant from '../classes/Plant.js';
-import Player from '../classes/Player.js';
-import { saveGame, loadGame, autoSaveGame, loadAutoSave, checkAutoSave, deserializeGameState } from '../classes/SaveState.js';
+import Grid from '../classes/Grid.ts';
+import Plant from '../classes/Plant.ts';
+import Player from '../classes/Player.ts';
+import { saveGame, loadGame, autoSaveGame, loadAutoSave, checkAutoSave, deserializeGameState } from '../classes/SaveState.ts';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {

@@ -4,7 +4,7 @@ import Phaser from "phaser";
 
 import LoadScene from "./scenes/LoadScene.js";
 import MenuScene from "./scenes/MenuScene.js";
-import CreditsScene from "./scenes/CreditsScene.js";
+import CreditsScene from "./scenes/CreditsScene.ts";
 import GameScene from "./scenes/GameScene.js";
 
 let config = {

@@ -1,7 +1,23 @@
 import Phaser from 'phaser';
 
-export default class Player extends Phaser.Events.EventEmitter{
-    constructor(scene, grid, startRow, startCol, spriteKey) {
+interface Grid {
+    offsetX: number;
+    offsetY: number;
+    cellSize: number;
+    rows: number;
+    cols: number;
+}
+
+export default class Player extends Phaser.Events.EventEmitter {
+    private scene: Phaser.Scene;
+    private grid: Grid;
+    private sprite: Phaser.GameObjects.Sprite;
+    private row: number;
+    private col: number;
+    private isMoving: boolean;
+    private keyPressed: string | null;
+
+    constructor(scene: Phaser.Scene, grid: Grid, startRow: number, startCol: number, spriteKey: string) {
         super();
 
         this.scene = scene;
@@ -16,7 +32,7 @@ export default class Player extends Phaser.Events.EventEmitter{
         const startY = this.grid.offsetY + this.row * this.grid.cellSize + this.grid.cellSize / 2;
 
         this.sprite = this.scene.add.sprite(startX, startY, spriteKey);
-        this.sprite.setScale(this.grid.cellSize / this.sprite.width * 0.8);
+        this.sprite.setScale((this.grid.cellSize / this.sprite.width) * 0.8);
 
         this.isMoving = false;
         this.keyPressed = null;
@@ -24,7 +40,7 @@ export default class Player extends Phaser.Events.EventEmitter{
         this.addKeyListeners();
     }
 
-    moveTo(row, col) {
+    moveTo(row: number, col: number): void {
         // Ensure the new position is within bounds
         if (row >= 0 && row < this.grid.rows && col >= 0 && col < this.grid.cols) {
             this.row = row;
@@ -39,8 +55,8 @@ export default class Player extends Phaser.Events.EventEmitter{
         }
     }
 
-    addKeyListeners() {
-        this.scene.input.keyboard.on('keydown', (event) => {
+    private addKeyListeners(): void {
+        this.scene.input.keyboard.on('keydown', (event: KeyboardEvent) => {
             if (!this.isMoving) {
                 this.isMoving = true;
                 this.keyPressed = event.code;
@@ -62,9 +78,8 @@ export default class Player extends Phaser.Events.EventEmitter{
             }
         });
 
-        this.scene.input.keyboard.on('keyup', (event) => {
-            if (event.code == this.keyPressed) 
-            {
+        this.scene.input.keyboard.on('keyup', (event: KeyboardEvent) => {
+            if (event.code === this.keyPressed) {
                 this.isMoving = false;
                 this.keyPressed = null;
             }

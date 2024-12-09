@@ -1,22 +1,25 @@
 export default class GridCell {
-    constructor(dataArray, index) {
+    private dataArray: number[];
+    private index: number;
+
+    constructor(dataArray: number[], index: number) {
         this.dataArray = dataArray;
         this.index = index;
     }
 
-    get sunlight() {
+    get sunlight(): number {
         return this.dataArray[this.index];
     }
 
-    set sunlight(value) {
+    set sunlight(value: number) {
         this.dataArray[this.index] = value;
     }
 
-    get water() {
+    get water(): number {
         return this.dataArray[this.index + 1];
     }
 
-    set water(value) {
+    set water(value: number) {
         this.dataArray[this.index + 1] = value;
     }
 }
