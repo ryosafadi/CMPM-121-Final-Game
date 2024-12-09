@@ -68,6 +68,36 @@ Throughout completing the F0 requirements, our team members' roles stayed pretty
 
 ## How we satisfied the F0 software requirements
 
+1. [F0.a] You control a character moving over a 2D grid.
+
+We created a grid of individual grid cell instances so that we can reference each grid cell based on its position within the grid. We then added a player character that can be controlled using the arrow keys. This character moves discretely between the gridcells, moving from grid cell to adjacent grid cell depending on which arrow key is was pressed.
+
+2. [F0.b] You advance time manually in the turn-based simulation.
+
+We have implemented a "next turn" button that advances time by one turn in the simulation each time it is pressed. This affects the sunlight and water levels of the grid cells, as well as the growth levels of any plants on the grid that have met their growth conditions.
+
+3. [F0.c] You can reap or sow plants on grid cells only when you are near them.
+
+We have buttons that, when clicked, add a plant seed to the player's inventory. The player can then click on a grid cell and select the seed they wish to plant from their inventory. When a plant reaches level 3, it can be harvested and sold to progress toward the player's objective.
+
+4. [F0.d] Grid cells have sun and water levels. The incoming sun and water for each cell is somehow randomly generated each turn. Sun energy cannot be stored in a cell (it is used immediately or lost) while water moisture can be slowly accumulated over several turns.
+
+Each grid cell has its own sun and water values that are randomly generated each turn. Both traits are randomized to a value between 0 and 10, and do not carry over between turns. Plants can only grow on cells that have met or exceeded a certain sun and water threshold.
+
+5. [F0.e] Each plant on the grid has a distinct type (e.g. one of 3 species) and a growth level (e.g. “level 1”, “level 2”, “level 3”).
+
+Except for using strings to represent the different plants, we added 3 different sprite sheets for the types and their respective levels.
+
+6. [F0.f] Simple spatial rules govern plant growth based on sun, water, and nearby plants (growth is unlocked by satisfying conditions).
+
+Plants can grow if the grid cell they were planted on has met or exceeded the sun and water threshold, and if their spatial conditions have also been met. One type of plant will grow if no other plants are adjacent to it, another will grow if exactly 1 other plant is adjacent to it, and the third will grow if 2 or more plants are adjacent to it.
+
+8. [F0.g] A play scenario is completed when some condition is satisfied (e.g. at least X plants at growth level Y or above).
+
+Once the player has sold 5 plants, which require the player to grow plants to level 3 and then harvest them, they will have completed the play scenario.
+
+## How we satisfied the F1 software requirements
+
 1. [F1.a] The important state of your game's grid must be backed by a single contiguous byte array in AoS or SoA format. If your game stores the grid state in multiple format, the byte array format must be the primary format (i.e. other formats are decoded from it as needed).
 
 The Grid class uses a single contiguous dataArray to store grid state, with each cell represented by two bytes (sunlight and water).
