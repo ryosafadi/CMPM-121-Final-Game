@@ -23,7 +23,35 @@ export default class GameScene extends Phaser.Scene {
         this.winCondition = 5; // Number of plants to sell to win
     }
 
+    preload() {
+        this.load.spritesheet('player', 'assets/sprites/astronaut_16.png', { frameWidth: 16, frameHeight: 16 });
+        this.load.spritesheet('potato', 'assets/sprites/potato_16.png', { frameWidth: 16, frameHeight: 16 });
+        this.load.spritesheet('wheat', 'assets/sprites/wheat_16.png', { frameWidth: 16, frameHeight: 16 });
+        this.load.spritesheet('radish', 'assets/sprites/radish_16.png', { frameWidth: 16, frameHeight: 16 });
+    }
+
     create() {
+        this.anims.create({
+            key: 'potato_grow',
+            frames: this.anims.generateFrameNumbers('potato', { start: 0, end: 2 }),
+            frameRate: 0, // Set frameRate to 0 to control frame progression manually
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: 'wheat_grow',
+            frames: this.anims.generateFrameNumbers('wheat', { start: 0, end: 2 }),
+            frameRate: 0, // Set frameRate to 0 to control frame progression manually
+            repeat: 0
+        });
+
+        this.anims.create({
+            key: 'radish_grow',
+            frames: this.anims.generateFrameNumbers('radish', { start: 0, end: 2 }),
+            frameRate: 0, // Set frameRate to 0 to control frame progression manually
+            repeat: 0
+        });
+
         this.grid = new Grid(this, this.ROWS, this.COLS);
         this.grid.offsetX += 150; // Shift the grid to the right to make space for the text
         this.grid.drawGrid(this);
@@ -244,13 +272,10 @@ export default class GameScene extends Phaser.Scene {
     }
 
     createRandomSeedButtons() {
-        const plantTypes = ['🌱', '🌿', '🌳'];
+        const plantTypes = ['potato', 'wheat', 'radish'];
         plantTypes.forEach((type, index) => {
-            const button = this.add.text(10, 220 + index * 30, `+ ${type}`, {
-                fontSize: '16px',
-                fill: '#ffffff',
-                backgroundColor: '#000'
-            }).setInteractive();
+            const button = this.add.image(30, 220 + index * 40, type).setInteractive();
+            button.setScale(2); // Scale up the button for better visibility
 
             button.on('pointerdown', () => {
                 this.addRandomSeed(type);
@@ -261,10 +286,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     addRandomSeed(type) {
-        const plant = new Plant(type, 1);
-        this.inventory.push(plant);
+        const newPlant = new Plant(type, 1, this, this.player.row, this.player.col);
+        this.inventory.push(newPlant);
         this.updateInventoryDisplay();
-        alert(`+ ${type}`);
     }
 
     updateInventoryDisplay() {
@@ -381,34 +405,43 @@ export default class GameScene extends Phaser.Scene {
         grid.plants.forEach(({ row, col, plant }) => {
             const x = grid.offsetX + col * grid.cellSize + grid.cellSize / 2;
             const y = grid.offsetY + row * grid.cellSize + grid.cellSize / 2;
-            const text = this.add.text(x, y, plant.type, {
-                fontSize: `${grid.cellSize / 3}px`, // Smaller font size for plant emoji
-                align: 'center'
-            }).setOrigin(0.5);
-            text.setDepth(1); // Ensure the text is rendered on top
+            const sprite = this.add.sprite(x, y, plant.type).setOrigin(0.5);
+            sprite.setDepth(1); // Ensure the sprite is rendered on top
 
-            // Tag the text object with plantType for easy identification
-            text.plantType = plant.type;
+            // Play the appropriate animation based on the plant type
+            if (plant.type === 'potato') {
+                sprite.anims.play('potato_grow', true);
+                sprite.anims.setCurrentFrame(sprite.anims.currentAnim.frames[plant.level - 1]);
+            } else if (plant.type === 'wheat') {
+                sprite.anims.play('wheat_grow', true);
+                sprite.anims.setCurrentFrame(sprite.anims.currentAnim.frames[plant.level - 1]);
+            } else if (plant.type === 'radish') {
+                sprite.anims.play('radish_grow', true);
+                sprite.anims.setCurrentFrame(sprite.anims.currentAnim.frames[plant.level - 1]);
+            }
+
+            // Tag the sprite object with plantType for easy identification
+            sprite.plantType = plant.type;
             this.drawnPlants[row] = this.drawnPlants[row] || {};
-            this.drawnPlants[row][col] = text;
+            this.drawnPlants[row][col] = sprite;
         });
     }
 
-    showPlantSelectionMenu(grid) {
+        showPlantSelectionMenu(grid) {
         if (this.plantSelectionMenu) {
             this.plantSelectionMenu.destroy(); // Destroy existing menu
         }
-
+    
         if (this.inventory.length > 0) {
             const plantCounts = this.inventory.reduce((counts, plant) => {
                 counts[plant.type] = (counts[plant.type] || 0) + 1;
                 return counts;
             }, {});
-
+    
             // Create a menu with buttons for each plant type
             this.plantSelectionMenu = this.add.container(grid.offsetX + this.player.col * grid.cellSize, grid.offsetY + this.player.row * grid.cellSize);
             let y = 0;
-
+    
             for (const [type, count] of Object.entries(plantCounts)) {
                 const button = this.add.text(0, y, `${type} (${count})`, {
                     fontSize: '20px',
@@ -416,7 +449,7 @@ export default class GameScene extends Phaser.Scene {
                     backgroundColor: '#000000',
                     padding: { left: 10, right: 10, top: 5, bottom: 5 }
                 }).setInteractive();
-
+    
                 button.on('pointerdown', (pointer, localX, localY, event) => {
                     const selectedPlant = this.inventory.find(plant => plant.type === type);
                     if (selectedPlant) {
@@ -433,7 +466,7 @@ export default class GameScene extends Phaser.Scene {
                     }
                     event.stopPropagation();
                 });
-
+    
                 this.plantSelectionMenu.add(button);
                 y += 30;
             }
