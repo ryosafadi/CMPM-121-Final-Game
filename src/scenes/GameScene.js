@@ -395,50 +395,69 @@ export default class GameScene extends Phaser.Scene {
     }
 
     showPlantSelectionMenu(grid) {
-        if (this.plantSelectionMenu) {
-            this.plantSelectionMenu.destroy(); // Destroy existing menu
-        }
-
+        this.destroyExistingMenu();
+    
         if (this.inventory.length > 0) {
-            const plantCounts = this.inventory.reduce((counts, plant) => {
-                counts[plant.type] = (counts[plant.type] || 0) + 1;
-                return counts;
-            }, {});
-
-            // Create a menu with buttons for each plant type
-            this.plantSelectionMenu = this.add.container(grid.offsetX + this.player.col * grid.cellSize, grid.offsetY + this.player.row * grid.cellSize);
-            let y = 0;
-
-            for (const [type, count] of Object.entries(plantCounts)) {
-                const button = this.add.text(0, y, `${type} (${count})`, {
-                    fontSize: '20px',
-                    fill: '#ffffff',
-                    backgroundColor: '#000000',
-                    padding: { left: 10, right: 10, top: 5, bottom: 5 }
-                }).setInteractive();
-
-                button.on('pointerdown', (pointer, localX, localY, event) => {
-                    const selectedPlant = this.inventory.find(plant => plant.type === type);
-                    if (selectedPlant) {
-                        const newPlant = new Plant(selectedPlant.type, selectedPlant.level);
-                        grid.addPlant(this.player.row, this.player.col, newPlant);
-                        this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
-                        this.selectedPlant = null;
-                        this.drawPlants(grid);
-                        this.updateInventoryDisplay();
-                        this.plantSelectionMenu.destroy(); // Destroy the menu after placing the plant
-                        this.plantSelectionMenu = null; // Reset the menu reference
-                        this.displayCellInfo(this.player.row, this.player.col); // Display cell info after placing the plant
-                        this.grid.emit('gamestate-changed');
-                    }
-                    event.stopPropagation();
-                });
-
-                this.plantSelectionMenu.add(button);
-                y += 30;
-            }
+            const plantCounts = this.getPlantCounts();
+            this.createPlantSelectionMenu(grid, plantCounts);
         } else {
-            alert(getTranslation('no_plants_inventory'));
+            this.showNotification(getTranslation('no_plants_inventory'));
         }
+    }
+    
+    destroyExistingMenu() {
+        if (this.plantSelectionMenu) {
+            this.plantSelectionMenu.destroy();
+            this.plantSelectionMenu = null;
+        }
+    }
+    
+    getPlantCounts() {
+        return this.inventory.reduce((counts, plant) => {
+            counts[plant.type] = (counts[plant.type] || 0) + 1;
+            return counts;
+        }, {});
+    }
+    
+    createPlantSelectionMenu(grid, plantCounts) {
+        this.plantSelectionMenu = this.add.container(
+            grid.offsetX + this.player.col * grid.cellSize,
+            grid.offsetY + this.player.row * grid.cellSize
+        );
+    
+        const BUTTON_SPACING = 30;
+        let y = 0;
+    
+        for (const [type, count] of Object.entries(plantCounts)) {
+            const button = this.add.text(0, y, `${type} (${count})`, {
+                fontSize: '20px',
+                fill: '#ffffff',
+                backgroundColor: '#000000',
+                padding: { left: 10, right: 10, top: 5, bottom: 5 }
+            }).setInteractive();
+    
+            button.on('pointerdown', () => this.handlePlantSelection(type, grid));
+            this.plantSelectionMenu.add(button);
+            y += BUTTON_SPACING;
+        }
+    }
+    
+    handlePlantSelection(type, grid) {
+        const selectedPlant = this.inventory.find(plant => plant.type === type);
+        if (selectedPlant) {
+            const newPlant = new Plant(selectedPlant.type, selectedPlant.level);
+            grid.addPlant(this.player.row, this.player.col, newPlant);
+            this.inventory = this.inventory.filter(plant => plant !== selectedPlant);
+            this.selectedPlant = null;
+            this.drawPlants(grid);
+            this.updateInventoryDisplay();
+            this.destroyExistingMenu();
+            this.displayCellInfo(this.player.row, this.player.col);
+            this.grid.emit('gamestate-changed');
+        }
+    }
+    
+    showNotification(message) {
+        this.add.text(10, 10, message, { fontSize: '16px', fill: '#ff0000' });
     }
 }
