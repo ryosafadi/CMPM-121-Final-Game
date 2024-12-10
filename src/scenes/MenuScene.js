@@ -1,46 +1,51 @@
-import Phaser from 'phaser'
+import Phaser from 'phaser';
 
 export default class MenuScene extends Phaser.Scene {
   constructor() {
-    super('MenuScene')
+    super('MenuScene');
   }
 
   create() {
-    const { width, height } = this.scale
+    const { width, height } = this.scale;
 
     // Add game title
     this.add.text(width / 2, height / 4, 'Space Farm', {
       font: '48px Arial',
       fill: '#ffffff'
-    }).setOrigin(0.5)
+    }).setOrigin(0.5);
 
-    // Add start button
-    const startButton = this.add.text(width / 2, height / 2, 'Start', {
+    // Create Start button
+    this.createButton(
+      width / 2,
+      height / 2,
+      'Start',
+      () => this.scene.start('GameScene') // Switch to Game Scene
+    );
+
+    // Create Credits button
+    this.createButton(
+      width / 2,
+      height / 1.6,
+      'Credits',
+      () => this.scene.start('CreditsScene') // Switch to Credits Scene
+    );
+  }
+
+  createButton(x, y, text, callback) {
+    const button = this.add.text(x, y, text, {
       font: '24px Arial',
       fill: '#ffffff',
       backgroundColor: '#000000',
       padding: { left: 10, right: 10, top: 5, bottom: 5 }
-    }).setOrigin(0.5)
+    }).setOrigin(0.5);
 
-    startButton.setInteractive()
+    button.setInteractive();
 
-    startButton.on('pointerdown', () => {
-      this.scene.start('GameScene') // Switch to Game Scene
-    })
+    button.on('pointerdown', callback);
 
-    // Add credits button
-    const creditsButton = this.add.text(width / 2, height / 1.6, 'Credits', {
-      font: '24px Arial',
-      fill: '#ffffff',
-      backgroundColor: '#000000',
-      padding: { left: 10, right: 10, top: 5, bottom: 5 }
-    }).setOrigin(0.5)
+    button.on('pointerover', () => button.setStyle({ backgroundColor: '#444444' }));
+    button.on('pointerout', () => button.setStyle({ backgroundColor: '#000000' }));
 
-    creditsButton.setInteractive()
-
-    creditsButton.on('pointerdown', () => {
-      this.scene.start('CreditsScene') // Switch to Game Scene
-    })
-    
+    return button;
   }
 }
