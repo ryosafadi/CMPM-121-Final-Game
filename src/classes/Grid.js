@@ -111,9 +111,6 @@ export default class Grid extends Phaser.Events.EventEmitter {
                     0.1
                 );
                 rect.setStrokeStyle(2, 0xffffff);
-
-                // Access the corresponding cell
-                const cell = this.getCell(row, col);
             }
         }
     }
