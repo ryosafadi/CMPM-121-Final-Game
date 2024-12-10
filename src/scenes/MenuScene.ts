@@ -6,11 +6,13 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.cameras.main.setBackgroundColor('#cd842f'); 
+
     const { width, height } = this.scale;
 
     // Add game title
     this.add.text(width / 2, height / 4, 'Space Farm', {
-      font: '48px Arial',
+      font: '68px Arial',
       fill: '#ffffff',
     }).setOrigin(0.5);
 
@@ -18,7 +20,7 @@ export default class MenuScene extends Phaser.Scene {
     const startButton = this.add.text(width / 2, height / 2, 'Start', {
       font: '24px Arial',
       fill: '#ffffff',
-      backgroundColor: '#000000',
+      backgroundColor: '#a8671c',
       padding: { left: 10, right: 10, top: 5, bottom: 5 },
     }).setOrigin(0.5);
 
@@ -28,11 +30,20 @@ export default class MenuScene extends Phaser.Scene {
       this.scene.start('GameScene');
     });
 
+    // Hover effect
+    startButton.on('pointerover', () => {
+      startButton.setStyle({ backgroundColor: '#734209' }); 
+    });
+
+    startButton.on('pointerout', () => {
+      startButton.setStyle({ backgroundColor: '#a8671c' });
+    });
+
     // Add credits button
-    const creditsButton = this.add.text(width / 2, height / 1.6, 'Credits', {
+    const creditsButton = this.add.text(width / 2, height / 1.7, 'Credits', {
       font: '24px Arial',
       fill: '#ffffff',
-      backgroundColor: '#000000',
+      backgroundColor: '#a8671c',
       padding: { left: 10, right: 10, top: 5, bottom: 5 },
     }).setOrigin(0.5);
 
@@ -40,6 +51,15 @@ export default class MenuScene extends Phaser.Scene {
 
     creditsButton.on('pointerdown', () => {
       this.scene.start('CreditsScene');
+    });
+
+    // Hover effect
+    creditsButton.on('pointerover', () => {
+      creditsButton.setStyle({ backgroundColor: '#734209' }); 
+    });
+
+    creditsButton.on('pointerout', () => {
+      creditsButton.setStyle({ backgroundColor: '#a8671c' });
     });
   }
 }

@@ -16,9 +16,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cmpm-121-final-game": "file:",
     "phaser": "^3.87.0"
   },
   "devDependencies": {
+    "typescript": "^5.7.2",
     "vite": "^6.0.1"
   }
 }

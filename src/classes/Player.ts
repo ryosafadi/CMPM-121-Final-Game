@@ -28,11 +28,11 @@ export default class Player extends Phaser.Events.EventEmitter {
         this.col = startCol;
 
         // Create the player's visual representation
-        const startX = this.grid.offsetX + this.col * this.grid.cellSize + this.grid.cellSize / 2;
-        const startY = this.grid.offsetY + this.row * this.grid.cellSize + this.grid.cellSize / 2;
+        const startX = this.getGridPositionX(this.col);
+        const startY = this.getGridPositionY(this.row);
 
         this.sprite = this.scene.add.sprite(startX, startY, spriteKey);
-        this.sprite.setScale((this.grid.cellSize / this.sprite.width) * 0.8);
+        this.sprite.setScale((this.grid.cellSize / this.sprite.width) * 0.5);
 
         this.isMoving = false;
         this.keyPressed = null;
@@ -40,39 +40,68 @@ export default class Player extends Phaser.Events.EventEmitter {
         this.addKeyListeners();
     }
 
+    private getGridPositionX(col: number): number {
+        return this.grid.offsetX + col * this.grid.cellSize + this.grid.cellSize / 2;
+    }
+
+    private getGridPositionY(row: number): number {
+        return this.grid.offsetY + row * this.grid.cellSize + this.grid.cellSize / 2;
+    }
+
+    private isWithinBounds(row: number, col: number): boolean {
+        return row >= 0 && row < this.grid.rows && col >= 0 && col < this.grid.cols;
+    }
+
     moveTo(row: number, col: number): void {
-        // Ensure the new position is within bounds
-        if (row >= 0 && row < this.grid.rows && col >= 0 && col < this.grid.cols) {
-            this.row = row;
-            this.col = col;
+        if (this.isMoving || !this.isWithinBounds(row, col)) return;
 
-            // Update the player's visual position
-            const x = this.grid.offsetX + this.col * this.grid.cellSize + this.grid.cellSize / 2;
-            const y = this.grid.offsetY + this.row * this.grid.cellSize + this.grid.cellSize / 2;
-            this.sprite.setPosition(x, y);
+        this.row = row;
+        this.col = col;
 
-            this.emit('player-moved');
-        }
+        // Update the player's visual position with a tween
+        const x = this.getGridPositionX(this.col);
+        const y = this.getGridPositionY(this.row);
+
+        this.isMoving = true;
+        this.scene.tweens.add({
+            targets: this.sprite,
+            x: x,
+            y: y,
+            duration: 200, // Adjust for desired smoothness
+            onComplete: () => {
+                this.isMoving = false;
+                this.emit('player-moved');
+            }
+        });
     }
 
     private addKeyListeners(): void {
         this.scene.input.keyboard.on('keydown', (event: KeyboardEvent) => {
             if (!this.isMoving) {
-                this.isMoving = true;
                 this.keyPressed = event.code;
 
                 switch (event.code) {
+                    // Arrow keys for movement
                     case 'ArrowLeft':
+                    case 'KeyA':
                         this.moveTo(this.row, this.col - 1);
                         break;
                     case 'ArrowRight':
+                    case 'KeyD':
                         this.moveTo(this.row, this.col + 1);
                         break;
                     case 'ArrowUp':
+                    case 'KeyW':
                         this.moveTo(this.row - 1, this.col);
                         break;
                     case 'ArrowDown':
+                    case 'KeyS':
                         this.moveTo(this.row + 1, this.col);
+                        break;
+
+                    // E key for picking up a plant
+                    case 'KeyE':
+                        this.emit('player-pickup', this.row, this.col);
                         break;
                 }
             }
@@ -80,7 +109,6 @@ export default class Player extends Phaser.Events.EventEmitter {
 
         this.scene.input.keyboard.on('keyup', (event: KeyboardEvent) => {
             if (event.code === this.keyPressed) {
-                this.isMoving = false;
                 this.keyPressed = null;
             }
         });

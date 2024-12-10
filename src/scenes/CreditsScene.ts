@@ -6,34 +6,36 @@ export default class CreditsScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.cameras.main.setBackgroundColor('#cd842f'); 
+
     const { width, height } = this.scale;
 
     // Add credits title
     this.add.text(width / 2, height / 4, 'Credits', {
-      font: '32px Arial',
+      font: '42px Arial',
       fill: '#ffffff',
     }).setOrigin(0.5);
 
     // Add credit details
-    this.add.text(width / 2, height / 2.1, `Tools Lead: Ryo Safadi`, {
+    this.add.text(width / 2, height / 3, `Tools Lead: Ryo Safadi`, {
       font: '20px Arial',
-      fill: '#aaaaaa',
+      fill: '#f2f2f2',
       align: 'center',
     }).setOrigin(0.5);
 
-    this.add.text(width / 2, height / 1.8, `Engine Lead: Mitchell Tai`, {
+    this.add.text(width / 2, height / 2.5, `Engine Lead: Mitchell Tai`, {
       font: '20px Arial',
-      fill: '#aaaaaa',
+      fill: '#f2f2f2',
       align: 'center',
     }).setOrigin(0.5);
 
     this.add.text(
       width / 2,
-      height / 1.6,
+      height / 2.1,
       `Design Co-Leads: Arno Wu, Patrick James Alcantara`,
       {
         font: '20px Arial',
-        fill: '#aaaaaa',
+        fill: '#f2f2f2',
         align: 'center',
       }
     ).setOrigin(0.5);
@@ -42,7 +44,7 @@ export default class CreditsScene extends Phaser.Scene {
     const backButton = this.add.text(width / 2, (height * 3) / 4, 'Back', {
       font: '24px Arial',
       fill: '#ffffff',
-      backgroundColor: '#000000',
+      backgroundColor: '#a8671c',
       padding: { left: 10, right: 10, top: 5, bottom: 5 },
     }).setOrigin(0.5);
 
@@ -51,5 +53,14 @@ export default class CreditsScene extends Phaser.Scene {
     backButton.on('pointerdown', () => {
       this.scene.start('MenuScene');
     });
+
+      // Hover effect
+      backButton.on('pointerover', () => {
+        backButton.setStyle({ backgroundColor: '#734209' }); 
+      });
+  
+      backButton.on('pointerout', () => {
+        backButton.setStyle({ backgroundColor: '#a8671c' });
+      });
   }
 }
