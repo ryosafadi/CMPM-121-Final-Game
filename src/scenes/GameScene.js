@@ -81,52 +81,37 @@ export default class GameScene extends Phaser.Scene {
         const buttonPadding = 10;
         const screenWidth = this.scale.width;
         const screenHeight = this.scale.height;
-
-        const upButton = this.add.text(screenWidth - buttonSize - buttonPadding, screenHeight - buttonSize * 3 - buttonPadding * 3, '▲', {
-            fontSize: `${buttonSize}px`,
-            fill: '#ffffff',
-            backgroundColor: '#000000',
-            padding: { left: 10, right: 10, top: 5, bottom: 5 },
-        }).setInteractive();
-
-        const downButton = this.add.text(screenWidth - buttonSize - buttonPadding, screenHeight - buttonSize - buttonPadding, '▼', {
-            fontSize: `${buttonSize}px`,
-            fill: '#ffffff',
-            backgroundColor: '#000000',
-            padding: { left: 10, right: 10, top: 5, bottom: 5 },
-        }).setInteractive();
-
-        const leftButton = this.add.text(screenWidth - buttonSize * 2 - buttonPadding * 2, screenHeight - buttonSize * 2 - buttonPadding * 2, '◀', {
-            fontSize: `${buttonSize}px`,
-            fill: '#ffffff',
-            backgroundColor: '#000000',
-            padding: { left: 10, right: 10, top: 5, bottom: 5 },
-        }).setInteractive();
-
-        const rightButton = this.add.text(screenWidth - buttonPadding, screenHeight - buttonSize * 2 - buttonPadding * 2, '▶', {
-            fontSize: `${buttonSize}px`,
-            fill: '#ffffff',
-            backgroundColor: '#000000',
-            padding: { left: 10, right: 10, top: 5, bottom: 5 },
-        }).setInteractive();
-
-        upButton.on('pointerdown', () => {
-            this.player.moveTo(this.player.row - 1, this.player.col);
-        });
-
-        downButton.on('pointerdown', () => {
-            this.player.moveTo(this.player.row + 1, this.player.col);
-        });
-
-        leftButton.on('pointerdown', () => {
-            this.player.moveTo(this.player.row, this.player.col - 1);
-        });
-
-        rightButton.on('pointerdown', () => {
-            this.player.moveTo(this.player.row, this.player.col + 1);
+    
+        const BUTTON_CONFIG = [
+            { label: '▲', x: screenWidth - buttonSize - buttonPadding, y: screenHeight - buttonSize * 3 - buttonPadding * 3, action: 'up' },
+            { label: '▼', x: screenWidth - buttonSize - buttonPadding, y: screenHeight - buttonSize - buttonPadding, action: 'down' },
+            { label: '◀', x: screenWidth - buttonSize * 2 - buttonPadding * 2, y: screenHeight - buttonSize * 2 - buttonPadding * 2, action: 'left' },
+            { label: '▶', x: screenWidth - buttonPadding, y: screenHeight - buttonSize * 2 - buttonPadding * 2, action: 'right' }
+        ];
+    
+        BUTTON_CONFIG.forEach(({ label, x, y, action }) => {
+            const button = this.add.text(x, y, label, {
+                fontSize: `${buttonSize}px`,
+                fill: '#ffffff',
+                backgroundColor: '#000000',
+                padding: { left: 10, right: 10, top: 5, bottom: 5 }
+            }).setInteractive();
+    
+            button.on('pointerdown', () => {
+                this.handleMove(action);
+            });
         });
     }
-
+    
+    handleMove(action) {
+        switch (action) {
+            case 'up': this.player.moveTo(this.player.row - 1, this.player.col); break;
+            case 'down': this.player.moveTo(this.player.row + 1, this.player.col); break;
+            case 'left': this.player.moveTo(this.player.row, this.player.col - 1); break;
+            case 'right': this.player.moveTo(this.player.row, this.player.col + 1); break;
+        }
+    }
+    
     createSaveLoadButtons() {
         const saveButton = this.add.text(10, 10, getTranslation('save_game'), {
             fontSize: '16px',
