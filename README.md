@@ -1,4 +1,6 @@
-# CMPM-121-Final-Game
+# Space Farm (CMPM-121-Final-Game)
+
+Space Farm is a simple farming sim about trying to figure out the necessary conditions for growing different plants on a planet in outer space. It is partially inspired by the film "The Martian".
 
 ## Devlog Entry - [11/15/2024]
 
@@ -101,6 +103,8 @@ Once the player has sold 5 plants, which require the player to grow plants to le
 1. [F1.a] The important state of your game's grid must be backed by a single contiguous byte array in AoS or SoA format. If your game stores the grid state in multiple format, the byte array format must be the primary format (i.e. other formats are decoded from it as needed).
 
 The Grid class uses a single contiguous dataArray to store grid state, with each cell represented by two bytes (sunlight and water).
+
+![Memory Allocation Diagram](./assets/MemoryAllocation.png)
 
 2. [F1.b] The player must be able to manually save their progress in the game. This must allow them to load state and continue play another day (i.e. after quitting the game app). The player must be able to manage multiple save files/slots.
 
